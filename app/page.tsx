@@ -1,103 +1,466 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+import { useState, useMemo } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Badge } from "@/components/ui/badge"
+import { Plus, TrendingUp, TrendingDown, DollarSign, Edit, Trash2, Loader2 } from "lucide-react"
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts"
+import TransactionModal from "@/components/transaction-modal"
+import BudgetModal from "@/components/budget-modal"
+import AuthLayout from "@/components/auth/auth-layout"
+import Header from "@/components/layout/header"
+import { useAuth } from "@/hooks/use-auth"
+import type { Transaction, Budget } from "@/types/finance"
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+const CATEGORIES = [
+  "Alimentación",
+  "Transporte",
+  "Entretenimiento",
+  "Salud",
+  "Educación",
+  "Servicios",
+  "Compras",
+  "Otros",
+]
+
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#82CA9D", "#FFC658", "#FF7C7C"]
+
+export default function PersonalFinanceApp() {
+  const { user, loading } = useAuth()
+
+  const [transactions, setTransactions] = useState<Transaction[]>([
+    {
+      id: "1",
+      type: "income",
+      amount: 3000,
+      category: "Salario",
+      description: "Salario mensual",
+      date: "2024-01-15",
+    },
+    {
+      id: "2",
+      type: "expense",
+      amount: 800,
+      category: "Alimentación",
+      description: "Supermercado",
+      date: "2024-01-16",
+    },
+    {
+      id: "3",
+      type: "expense",
+      amount: 200,
+      category: "Transporte",
+      description: "Gasolina",
+      date: "2024-01-17",
+    },
+  ])
+
+  const [budgets, setBudgets] = useState<Budget[]>([
+    {
+      id: "1",
+      category: "Alimentación",
+      amount: 1000,
+      month: "2024-01",
+    },
+    {
+      id: "2",
+      category: "Transporte",
+      amount: 500,
+      month: "2024-01",
+    },
+  ])
+
+  const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false)
+  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false)
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
+  const [editingBudget, setEditingBudget] = useState<Budget | null>(null)
+
+  const totalIncome = useMemo(
+    () => transactions.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0),
+    [transactions],
+  )
+
+  const totalExpenses = useMemo(
+    () => transactions.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0),
+    [transactions],
+  )
+
+  const balance = totalIncome - totalExpenses
+
+  const chartData = useMemo(() => {
+    const last7Days = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date()
+      date.setDate(date.getDate() - (6 - i))
+      return date.toISOString().split("T")[0]
+    })
+
+    return last7Days.map((date) => {
+      const dayTransactions = transactions.filter((t) => t.date === date)
+      const income = dayTransactions.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0)
+      const expenses = dayTransactions.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0)
+
+      return {
+        date: new Date(date).toLocaleDateString("es-ES", { month: "short", day: "numeric" }),
+        ingresos: income,
+        gastos: expenses,
+        balance: income - expenses,
+      }
+    })
+  }, [transactions])
+
+  const expensesByCategory = useMemo(() => {
+    const categoryTotals = transactions
+      .filter((t) => t.type === "expense")
+      .reduce(
+        (acc, t) => {
+          acc[t.category] = (acc[t.category] || 0) + t.amount
+          return acc
+        },
+        {} as Record<string, number>,
+      )
+
+    return Object.entries(categoryTotals).map(([category, amount]) => ({
+      name: category,
+      value: amount,
+    }))
+  }, [transactions])
+
+  const budgetComparison = useMemo(() => {
+    const currentMonth = new Date().toISOString().slice(0, 7)
+
+    return budgets.map((budget) => {
+      const spent = transactions
+        .filter((t) => t.type === "expense" && t.category === budget.category && t.date.startsWith(currentMonth))
+        .reduce((sum, t) => sum + t.amount, 0)
+
+      const percentage = budget.amount > 0 ? (spent / budget.amount) * 100 : 0
+
+      return {
+        ...budget,
+        spent,
+        remaining: budget.amount - spent,
+        percentage: Math.min(percentage, 100),
+      }
+    })
+  }, [budgets, transactions])
+
+  const handleSaveTransaction = (transaction: Omit<Transaction, "id">) => {
+    if (editingTransaction) {
+      setTransactions((prev) =>
+        prev.map((t) => (t.id === editingTransaction.id ? { ...transaction, id: editingTransaction.id } : t)),
+      )
+      setEditingTransaction(null)
+    } else {
+      const newTransaction: Transaction = {
+        ...transaction,
+        id: Date.now().toString(),
+      }
+      setTransactions((prev) => [...prev, newTransaction])
+    }
+    setIsTransactionModalOpen(false)
+  }
+
+  const handleDeleteTransaction = (id: string) => {
+    setTransactions((prev) => prev.filter((t) => t.id !== id))
+  }
+
+  const handleEditTransaction = (transaction: Transaction) => {
+    setEditingTransaction(transaction)
+    setIsTransactionModalOpen(true)
+  }
+
+  const handleSaveBudget = (budget: Omit<Budget, "id">) => {
+    if (editingBudget) {
+      setBudgets((prev) => prev.map((b) => (b.id === editingBudget.id ? { ...budget, id: editingBudget.id } : b)))
+      setEditingBudget(null)
+    } else {
+      const newBudget: Budget = {
+        ...budget,
+        id: Date.now().toString(),
+      }
+      setBudgets((prev) => [...prev, newBudget])
+    }
+    setIsBudgetModalOpen(false)
+  }
+
+  const handleDeleteBudget = (id: string) => {
+    setBudgets((prev) => prev.filter((b) => b.id !== id))
+  }
+
+  const handleEditBudget = (budget: Budget) => {
+    setEditingBudget(budget)
+    setIsBudgetModalOpen(true)
+  }
+
+  // Show loading spinner while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Cargando...</p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+      </div>
+    )
+  }
+
+  // Show auth layout if user is not authenticated
+  if (!user) {
+    return <AuthLayout />
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+
+      <div className="p-4">
+        <div className="max-w-7xl mx-auto">
+          <Tabs defaultValue="dashboard" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+              <TabsTrigger value="budget">Presupuestos</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="dashboard" className="space-y-6">
+              {/* Resumen financiero */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Ingresos Totales</CardTitle>
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-green-600">${totalIncome.toLocaleString()}</div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Gastos Totales</CardTitle>
+                    <TrendingDown className="h-4 w-4 text-red-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-red-600">${totalExpenses.toLocaleString()}</div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Balance</CardTitle>
+                    <DollarSign className="h-4 w-4 text-blue-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className={`text-2xl font-bold ${balance >= 0 ? "text-green-600" : "text-red-600"}`}>
+                      ${balance.toLocaleString()}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Gráficas */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Movimiento de Dinero (Últimos 7 días)</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <Tooltip formatter={(value) => [`$${value}`, ""]} />
+                        <Line type="monotone" dataKey="ingresos" stroke="#10b981" strokeWidth={2} />
+                        <Line type="monotone" dataKey="gastos" stroke="#ef4444" strokeWidth={2} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Gastos por Categoría</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={expensesByCategory}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {expensesByCategory.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(value) => [`$${value}`, "Monto"]} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Lista de transacciones */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle>Transacciones Recientes</CardTitle>
+                    <CardDescription>Tus últimos movimientos financieros</CardDescription>
+                  </div>
+                  <Button onClick={() => setIsTransactionModalOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Nueva Transacción
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {transactions
+                      .slice(-10)
+                      .reverse()
+                      .map((transaction) => (
+                        <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div className="flex items-center space-x-4">
+                            <div
+                              className={`w-3 h-3 rounded-full ${
+                                transaction.type === "income" ? "bg-green-500" : "bg-red-500"
+                              }`}
+                            />
+                            <div>
+                              <p className="font-medium">{transaction.description}</p>
+                              <p className="text-sm text-gray-500">
+                                {transaction.category} • {transaction.date}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <span
+                              className={`font-bold ${transaction.type === "income" ? "text-green-600" : "text-red-600"}`}
+                            >
+                              {transaction.type === "income" ? "+" : "-"}${transaction.amount.toLocaleString()}
+                            </span>
+                            <Button variant="ghost" size="icon" onClick={() => handleEditTransaction(transaction)}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => handleDeleteTransaction(transaction.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="budget" className="space-y-6">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle>Presupuestos Mensuales</CardTitle>
+                    <CardDescription>Controla tus gastos por categoría</CardDescription>
+                  </div>
+                  <Button onClick={() => setIsBudgetModalOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Nuevo Presupuesto
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {budgetComparison.map((budget) => (
+                      <div key={budget.id} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="font-medium">{budget.category}</h3>
+                            <p className="text-sm text-gray-500">
+                              ${budget.spent.toLocaleString()} de ${budget.amount.toLocaleString()} gastado
+                            </p>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Badge
+                              variant={
+                                budget.percentage > 90
+                                  ? "destructive"
+                                  : budget.percentage > 70
+                                    ? "secondary"
+                                    : "default"
+                              }
+                            >
+                              {budget.percentage.toFixed(0)}%
+                            </Badge>
+                            <Button variant="ghost" size="icon" onClick={() => handleEditBudget(budget)}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => handleDeleteBudget(budget.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className={`h-2 rounded-full transition-all ${
+                              budget.percentage > 90
+                                ? "bg-red-500"
+                                : budget.percentage > 70
+                                  ? "bg-yellow-500"
+                                  : "bg-green-500"
+                            }`}
+                            style={{ width: `${Math.min(budget.percentage, 100)}%` }}
+                          />
+                        </div>
+                        <div className="flex justify-between text-sm text-gray-500">
+                          <span>Restante: ${budget.remaining.toLocaleString()}</span>
+                          <span>{budget.month}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+
+          {/* Modales */}
+          <TransactionModal
+            isOpen={isTransactionModalOpen}
+            onClose={() => {
+              setIsTransactionModalOpen(false)
+              setEditingTransaction(null)
+            }}
+            onSave={handleSaveTransaction}
+            categories={CATEGORIES}
+            transaction={editingTransaction}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
+
+          <BudgetModal
+            isOpen={isBudgetModalOpen}
+            onClose={() => {
+              setIsBudgetModalOpen(false)
+              setEditingBudget(null)
+            }}
+            onSave={handleSaveBudget}
+            categories={CATEGORIES}
+            budget={editingBudget}
           />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        </div>
+      </div>
     </div>
-  );
+  )
 }
