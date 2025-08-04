@@ -37,6 +37,17 @@ export function useAuth() {
     return { data, error }
   }
 
+  // Login solo con correo usando magic link
+  const signInWithMagicLink = async (email: string) => {
+    const { data, error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/`,
+      },
+    })
+    return { data, error }
+  }
+
   const signUp = async (email: string, password: string, fullName: string) => {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -67,6 +78,7 @@ export function useAuth() {
     session,
     loading,
     signIn,
+    signInWithMagicLink, // <-- exporta la nueva función
     signUp,
     signOut,
     resetPassword,

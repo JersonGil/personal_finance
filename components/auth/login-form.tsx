@@ -8,34 +8,44 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, Eye, EyeOff } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 
 interface LoginFormProps {
-  onToggleMode: () => void
   onForgotPassword: () => void
 }
 
-export default function LoginForm({ onToggleMode, onForgotPassword }: LoginFormProps) {
+export default function LoginForm({ onForgotPassword }: LoginFormProps) {
   const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-
-  const { signIn } = useAuth()
+  const [magicLinkSent, setMagicLinkSent] = useState(false)
+  const { signIn, signInWithMagicLink } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError("")
 
-    const { error } = await signIn(email, password)
+    const { error } = await signIn(email, '')
 
     if (error) {
       setError(error.message)
     }
 
+    setLoading(false)
+  }
+
+  const handleMagicLink = async () => {
+    setLoading(true)
+    setError("")
+    setMagicLinkSent(false)
+    const { error } = await signInWithMagicLink(email)
+    if (error) {
+      setError(error.message)
+    } else {
+      setMagicLinkSent(true)
+    }
     setLoading(false)
   }
 
@@ -52,6 +62,13 @@ export default function LoginForm({ onToggleMode, onForgotPassword }: LoginFormP
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
+          {magicLinkSent && (
+            <Alert variant="default">
+              <AlertDescription>
+                Se ha enviado un enlace mágico a tu correo. Revisa tu bandeja de entrada.
+              </AlertDescription>
+            </Alert>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="email">Correo Electrónico</Label>
@@ -66,56 +83,21 @@ export default function LoginForm({ onToggleMode, onForgotPassword }: LoginFormP
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="password">Contraseña</Label>
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={loading}
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                onClick={() => setShowPassword(!showPassword)}
-                disabled={loading}
-              >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4 text-gray-400" />
-                ) : (
-                  <Eye className="h-4 w-4 text-gray-400" />
-                )}
-              </Button>
-            </div>
-          </div>
-
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button
+            type="button"
+            className="w-full"
+            variant="outline"
+            disabled={loading || !email}
+            onClick={handleMagicLink}
+          >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Iniciar Sesión
+            Iniciar con enlace mágico
           </Button>
 
           <div className="text-center space-y-2">
             <Button type="button" variant="link" className="text-sm" onClick={onForgotPassword} disabled={loading}>
               ¿Olvidaste tu contraseña?
             </Button>
-            <div className="text-sm text-gray-600">
-              ¿No tienes cuenta?{" "}
-              <Button
-                type="button"
-                variant="link"
-                className="p-0 h-auto font-semibold"
-                onClick={onToggleMode}
-                disabled={loading}
-              >
-                Regístrate aquí
-              </Button>
-            </div>
           </div>
         </form>
       </CardContent>
