@@ -1,10 +1,9 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus, TrendingUp, TrendingDown, DollarSign, Edit, Trash2, Loader2 } from "lucide-react"
+import { TrendingUp, TrendingDown, DollarSign, Loader2 } from "lucide-react"
 import {
   LineChart,
   Line,
@@ -26,13 +25,15 @@ import { useCategories } from "@/hooks/use-categories"
 import RecentTransactions from "@/view/recent-transactions"
 import { useTransactions } from "@/hooks/use-get-transactions"
 import BudgetView from "@/view/budget-view"
+import BalanceView from "@/view/balance-view"
+import SettingsView from "@/view/settings-view"
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#82CA9D", "#FFC658", "#FF7C7C"]
 
 export default function PersonalFinanceApp() {
   const { user, loading } = useAuth()
-  const { categories, createCategory, updateCategory, deleteCategory } = useCategories()
-  const { transactions } = useTransactions()
+  const { createCategory, updateCategory } = useCategories()
+  const { transactions, refetch } = useTransactions()
 
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
@@ -105,11 +106,6 @@ export default function PersonalFinanceApp() {
     }
   }
 
-  const handleEditCategory = (category: Category) => {
-    setEditingCategory(category)
-    setIsCategoryModalOpen(true)
-  }
-
   // Show loading spinner while checking authentication
   if (loading) {
     return (
@@ -134,10 +130,11 @@ export default function PersonalFinanceApp() {
       <div className="p-4">
         <div className="max-w-7xl mx-auto">
           <Tabs defaultValue="dashboard" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
               <TabsTrigger value="budget">Presupuestos</TabsTrigger>
-              <TabsTrigger value="categories">Categorías</TabsTrigger>
+              <TabsTrigger value="balance">Balance</TabsTrigger>
+              <TabsTrigger value="settings">Configuración</TabsTrigger>
             </TabsList>
 
             <TabsContent value="dashboard" className="space-y-6">
@@ -208,7 +205,7 @@ export default function PersonalFinanceApp() {
                           cx="50%"
                           cy="50%"
                           labelLine={false}
-                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                           outerRadius={80}
                           fill="#8884d8"
                           dataKey="value"
@@ -225,49 +222,19 @@ export default function PersonalFinanceApp() {
               </div>
 
               {/* Lista de transacciones */}
-              <RecentTransactions />
+              <RecentTransactions refetch={refetch} />
             </TabsContent>
 
             <TabsContent value="budget" className="space-y-6">
               <BudgetView />
             </TabsContent>
 
-            <TabsContent value="categories" className="space-y-6">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <div>
-                    <CardTitle>Gestionar Categorías</CardTitle>
-                    <CardDescription>Personaliza tus categorías de ingresos y gastos</CardDescription>
-                  </div>
-                  <Button onClick={() => setIsCategoryModalOpen(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Nueva Categoría
-                  </Button>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {categories.map((category) => (
-                      <div key={category.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-4 h-4 rounded-full" style={{ backgroundColor: category.color }} />
-                          <div>
-                            <p className="font-medium">{category.name}</p>
-                            <p className="text-sm text-gray-500 capitalize">{category.type}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Button variant="ghost" size="icon" onClick={() => handleEditCategory(category)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => deleteCategory(category.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+            <TabsContent value="balance" className="space-y-6">
+              <BalanceView dashboardBalance={balance} />
+            </TabsContent>
+
+            <TabsContent value="settings" className="space-y-6">
+              <SettingsView />
             </TabsContent>
           </Tabs>
 
@@ -286,4 +253,3 @@ export default function PersonalFinanceApp() {
     </div>
   )
 }
-                  
