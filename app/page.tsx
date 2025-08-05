@@ -4,7 +4,6 @@ import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
 import { Plus, TrendingUp, TrendingDown, DollarSign, Edit, Trash2, Loader2 } from "lucide-react"
 import {
   LineChart,
@@ -18,68 +17,24 @@ import {
   Pie,
   Cell,
 } from "recharts"
-import TransactionModal from "@/components/transaction-modal"
-import BudgetModal from "@/components/budget-modal"
 import AuthLayout from "@/components/auth/auth-layout"
 import Header from "@/components/layout/header"
 import { useAuth } from "@/hooks/use-auth"
-import type { Transaction, Budget, Category } from "@/types/finance"
+import type { Category } from "@/types/finance"
 import CategoryModal from "@/components/category-modal"
 import { useCategories } from "@/hooks/use-categories"
+import RecentTransactions from "@/view/recent-transactions"
+import { useTransactions } from "@/hooks/use-get-transactions"
+import BudgetView from "@/view/budget-view"
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#82CA9D", "#FFC658", "#FF7C7C"]
 
 export default function PersonalFinanceApp() {
   const { user, loading } = useAuth()
   const { categories, createCategory, updateCategory, deleteCategory } = useCategories()
+  const { transactions } = useTransactions()
 
-  const [transactions, setTransactions] = useState<Transaction[]>([
-    {
-      id: "1",
-      type: "income",
-      amount: 3000,
-      category: "Salario",
-      description: "Salario mensual",
-      date: "2024-01-15",
-    },
-    {
-      id: "2",
-      type: "expense",
-      amount: 800,
-      category: "Alimentación",
-      description: "Supermercado",
-      date: "2024-01-16",
-    },
-    {
-      id: "3",
-      type: "expense",
-      amount: 200,
-      category: "Transporte",
-      description: "Gasolina",
-      date: "2024-01-17",
-    },
-  ])
-
-  const [budgets, setBudgets] = useState<Budget[]>([
-    {
-      id: "1",
-      category: "Alimentación",
-      amount: 1000,
-      month: "2024-01",
-    },
-    {
-      id: "2",
-      category: "Transporte",
-      amount: 500,
-      month: "2024-01",
-    },
-  ])
-
-  const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false)
-  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false)
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false)
-  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
-  const [editingBudget, setEditingBudget] = useState<Budget | null>(null)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
 
   const totalIncome = useMemo(
@@ -132,72 +87,6 @@ export default function PersonalFinanceApp() {
     }))
   }, [transactions])
 
-  const budgetComparison = useMemo(() => {
-    const currentMonth = new Date().toISOString().slice(0, 7)
-
-    return budgets.map((budget) => {
-      const spent = transactions
-        .filter((t) => t.type === "expense" && t.category === budget.category && t.date.startsWith(currentMonth))
-        .reduce((sum, t) => sum + t.amount, 0)
-
-      const percentage = budget.amount > 0 ? (spent / budget.amount) * 100 : 0
-
-      return {
-        ...budget,
-        spent,
-        remaining: budget.amount - spent,
-        percentage: Math.min(percentage, 100),
-      }
-    })
-  }, [budgets, transactions])
-
-  const handleSaveTransaction = (transaction: Omit<Transaction, "id">) => {
-    if (editingTransaction) {
-      setTransactions((prev) =>
-        prev.map((t) => (t.id === editingTransaction.id ? { ...transaction, id: editingTransaction.id } : t)),
-      )
-      setEditingTransaction(null)
-    } else {
-      const newTransaction: Transaction = {
-        ...transaction,
-        id: Date.now().toString(),
-      }
-      setTransactions((prev) => [...prev, newTransaction])
-    }
-    setIsTransactionModalOpen(false)
-  }
-
-  const handleDeleteTransaction = (id: string) => {
-    setTransactions((prev) => prev.filter((t) => t.id !== id))
-  }
-
-  const handleEditTransaction = (transaction: Transaction) => {
-    setEditingTransaction(transaction)
-    setIsTransactionModalOpen(true)
-  }
-
-  const handleSaveBudget = (budget: Omit<Budget, "id">) => {
-    if (editingBudget) {
-      setBudgets((prev) => prev.map((b) => (b.id === editingBudget.id ? { ...budget, id: editingBudget.id } : b)))
-      setEditingBudget(null)
-    } else {
-      const newBudget: Budget = {
-        ...budget,
-        id: Date.now().toString(),
-      }
-      setBudgets((prev) => [...prev, newBudget])
-    }
-    setIsBudgetModalOpen(false)
-  }
-
-  const handleDeleteBudget = (id: string) => {
-    setBudgets((prev) => prev.filter((b) => b.id !== id))
-  }
-
-  const handleEditBudget = (budget: Budget) => {
-    setEditingBudget(budget)
-    setIsBudgetModalOpen(true)
-  }
 
   const handleSaveCategory = async (categoryData: Omit<Category, "id" | "user_id" | "created_at" | "updated_at">) => {
     if (editingCategory) {
@@ -336,121 +225,11 @@ export default function PersonalFinanceApp() {
               </div>
 
               {/* Lista de transacciones */}
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <div>
-                    <CardTitle>Transacciones Recientes</CardTitle>
-                    <CardDescription>Tus últimos movimientos financieros</CardDescription>
-                  </div>
-                  <Button onClick={() => setIsTransactionModalOpen(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Nueva Transacción
-                  </Button>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {transactions
-                      .slice(-10)
-                      .reverse()
-                      .map((transaction) => (
-                        <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg">
-                          <div className="flex items-center space-x-4">
-                            <div
-                              className={`w-3 h-3 rounded-full ${
-                                transaction.type === "income" ? "bg-green-500" : "bg-red-500"
-                              }`}
-                            />
-                            <div>
-                              <p className="font-medium">{transaction.description}</p>
-                              <p className="text-sm text-gray-500">
-                                {transaction.category} • {transaction.date}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <span
-                              className={`font-bold ${transaction.type === "income" ? "text-green-600" : "text-red-600"}`}
-                            >
-                              {transaction.type === "income" ? "+" : "-"}${transaction.amount.toLocaleString()}
-                            </span>
-                            <Button variant="ghost" size="icon" onClick={() => handleEditTransaction(transaction)}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleDeleteTransaction(transaction.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                </CardContent>
-              </Card>
+              <RecentTransactions />
             </TabsContent>
 
             <TabsContent value="budget" className="space-y-6">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <div>
-                    <CardTitle>Presupuestos Mensuales</CardTitle>
-                    <CardDescription>Controla tus gastos por categoría</CardDescription>
-                  </div>
-                  <Button onClick={() => setIsBudgetModalOpen(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Nuevo Presupuesto
-                  </Button>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    {budgetComparison.map((budget) => (
-                      <div key={budget.id} className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h3 className="font-medium">{budget.category}</h3>
-                            <p className="text-sm text-gray-500">
-                              ${budget.spent.toLocaleString()} de ${budget.amount.toLocaleString()} gastado
-                            </p>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Badge
-                              variant={
-                                budget.percentage > 90
-                                  ? "destructive"
-                                  : budget.percentage > 70
-                                    ? "secondary"
-                                    : "default"
-                              }
-                            >
-                              {budget.percentage.toFixed(0)}%
-                            </Badge>
-                            <Button variant="ghost" size="icon" onClick={() => handleEditBudget(budget)}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleDeleteBudget(budget.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div
-                            className={`h-2 rounded-full transition-all ${
-                              budget.percentage > 90
-                                ? "bg-red-500"
-                                : budget.percentage > 70
-                                  ? "bg-yellow-500"
-                                  : "bg-green-500"
-                            }`}
-                            style={{ width: `${Math.min(budget.percentage, 100)}%` }}
-                          />
-                        </div>
-                        <div className="flex justify-between text-sm text-gray-500">
-                          <span>Restante: ${budget.remaining.toLocaleString()}</span>
-                          <span>{budget.month}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              <BudgetView />
             </TabsContent>
 
             <TabsContent value="categories" className="space-y-6">
@@ -493,28 +272,6 @@ export default function PersonalFinanceApp() {
           </Tabs>
 
           {/* Modales */}
-          <TransactionModal
-            isOpen={isTransactionModalOpen}
-            onClose={() => {
-              setIsTransactionModalOpen(false)
-              setEditingTransaction(null)
-            }}
-            onSave={handleSaveTransaction}
-            categories={categories.map((c) => c.name)}
-            transaction={editingTransaction}
-          />
-
-          <BudgetModal
-            isOpen={isBudgetModalOpen}
-            onClose={() => {
-              setIsBudgetModalOpen(false)
-              setEditingBudget(null)
-            }}
-            onSave={handleSaveBudget}
-            categories={categories.map((c) => c.name)}
-            budget={editingBudget}
-          />
-
           <CategoryModal
             isOpen={isCategoryModalOpen}
             onClose={() => {
@@ -529,3 +286,4 @@ export default function PersonalFinanceApp() {
     </div>
   )
 }
+                  

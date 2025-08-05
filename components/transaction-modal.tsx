@@ -19,34 +19,53 @@ interface TransactionModalProps {
   transaction?: Transaction | null
 }
 
-export default function TransactionModal({ isOpen, onClose, onSave, transaction }: TransactionModalProps) {
+export default function TransactionModal({ isOpen, onClose, onSave, transaction }: Readonly<TransactionModalProps>) {
   const { getIncomeCategories, getExpenseCategories, loading: categoriesLoading } = useCategories()
-  const [type, setType] = useState<TransactionType>("expense")
-  const [amount, setAmount] = useState("")
-  const [category, setCategory] = useState("")
-  const [description, setDescription] = useState("")
-  const [date, setDate] = useState("")
+  const [form, setForm] = useState<{
+    type: TransactionType
+    amount: string
+    category: string
+    description: string
+    date: string
+  }>({
+    type: "expense",
+    amount: "",
+    category: "",
+    description: "",
+    date: "",
+  })
 
   useEffect(() => {
     if (transaction) {
-      setType(transaction.type)
-      setAmount(transaction.amount.toString())
-      setCategory(transaction.category)
-      setDescription(transaction.description)
-      setDate(transaction.date)
+      setForm({
+        type: transaction.type,
+        amount: transaction.amount.toString(),
+        category: transaction.category,
+        description: transaction.description,
+        date: transaction.date,
+      })
     } else {
-      // Reset form
-      setType("expense")
-      setAmount("")
-      setCategory("")
-      setDescription("")
-      setDate(new Date().toISOString().split("T")[0])
+      setForm({
+        type: "expense",
+        amount: "",
+        category: "",
+        description: "",
+        date: new Date().toISOString().split("T")[0],
+      })
     }
   }, [transaction, isOpen])
+
+  const handleChange = (field: keyof typeof form, value: string) => {
+    setForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
+    const { type, amount, category, description, date } = form
     if (!amount || !category || !description || !date) {
       return
     }
@@ -59,12 +78,13 @@ export default function TransactionModal({ isOpen, onClose, onSave, transaction 
       date,
     })
 
-    // Reset form
-    setType("expense")
-    setAmount("")
-    setCategory("")
-    setDescription("")
-    setDate("")
+    setForm({
+      type: "expense",
+      amount: "",
+      category: "",
+      description: "",
+      date: "",
+    })
   }
 
   return (
@@ -76,7 +96,7 @@ export default function TransactionModal({ isOpen, onClose, onSave, transaction 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label>Tipo de Transacción</Label>
-            <RadioGroup value={type} onValueChange={(value) => setType(value as TransactionType)}>
+            <RadioGroup value={form.type} onValueChange={(value) => handleChange("type", value as TransactionType)}>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="income" id="income" />
                 <Label htmlFor="income">Ingreso</Label>
@@ -95,20 +115,25 @@ export default function TransactionModal({ isOpen, onClose, onSave, transaction 
               type="number"
               step="0.01"
               placeholder="0.00"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              value={form.amount}
+              onChange={(e) => handleChange("amount", e.target.value)}
               required
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="category">Categoría</Label>
-            <Select value={category} onValueChange={setCategory} required disabled={categoriesLoading}>
+            <Select
+              value={form.category}
+              onValueChange={(value) => handleChange("category", value)}
+              required
+              disabled={categoriesLoading}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Selecciona una categoría" />
               </SelectTrigger>
               <SelectContent>
-                {type === "income"
+                {form.type === "income"
                   ? getIncomeCategories().map((cat) => (
                       <SelectItem key={cat.id} value={cat.name}>
                         {cat.name}
@@ -128,15 +153,21 @@ export default function TransactionModal({ isOpen, onClose, onSave, transaction 
             <Textarea
               id="description"
               placeholder="Describe la transacción..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              value={form.description}
+              onChange={(e) => handleChange("description", e.target.value)}
               required
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="date">Fecha</Label>
-            <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+            <Input
+              id="date"
+              type="date"
+              value={form.date}
+              onChange={(e) => handleChange("date", e.target.value)}
+              required
+            />
           </div>
 
           <div className="flex justify-end space-x-2">
