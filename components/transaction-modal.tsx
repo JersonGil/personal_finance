@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-
+import { useCategories } from "@/hooks/use-categories"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -16,11 +16,11 @@ interface TransactionModalProps {
   isOpen: boolean
   onClose: () => void
   onSave: (transaction: Omit<Transaction, "id">) => void
-  categories: string[]
   transaction?: Transaction | null
 }
 
-export default function TransactionModal({ isOpen, onClose, onSave, categories, transaction }: TransactionModalProps) {
+export default function TransactionModal({ isOpen, onClose, onSave, transaction }: TransactionModalProps) {
+  const { getIncomeCategories, getExpenseCategories, loading: categoriesLoading } = useCategories()
   const [type, setType] = useState<TransactionType>("expense")
   const [amount, setAmount] = useState("")
   const [category, setCategory] = useState("")
@@ -103,25 +103,22 @@ export default function TransactionModal({ isOpen, onClose, onSave, categories, 
 
           <div className="space-y-2">
             <Label htmlFor="category">Categoría</Label>
-            <Select value={category} onValueChange={setCategory} required>
+            <Select value={category} onValueChange={setCategory} required disabled={categoriesLoading}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecciona una categoría" />
               </SelectTrigger>
               <SelectContent>
-                {type === "income" ? (
-                  <>
-                    <SelectItem value="Salario">Salario</SelectItem>
-                    <SelectItem value="Freelance">Freelance</SelectItem>
-                    <SelectItem value="Inversiones">Inversiones</SelectItem>
-                    <SelectItem value="Otros ingresos">Otros ingresos</SelectItem>
-                  </>
-                ) : (
-                  categories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
-                    </SelectItem>
-                  ))
-                )}
+                {type === "income"
+                  ? getIncomeCategories().map((cat) => (
+                      <SelectItem key={cat.id} value={cat.name}>
+                        {cat.name}
+                      </SelectItem>
+                    ))
+                  : getExpenseCategories().map((cat) => (
+                      <SelectItem key={cat.id} value={cat.name}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
               </SelectContent>
             </Select>
           </div>

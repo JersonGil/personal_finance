@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-
+import { useCategories } from "@/hooks/use-categories"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -14,11 +14,11 @@ interface BudgetModalProps {
   isOpen: boolean
   onClose: () => void
   onSave: (budget: Omit<Budget, "id">) => void
-  categories: string[]
   budget?: Budget | null
 }
 
-export default function BudgetModal({ isOpen, onClose, onSave, categories, budget }: BudgetModalProps) {
+export default function BudgetModal({ isOpen, onClose, onSave, budget }: BudgetModalProps) {
+  const { getExpenseCategories, loading: categoriesLoading } = useCategories()
   const [category, setCategory] = useState("")
   const [amount, setAmount] = useState("")
   const [month, setMonth] = useState("")
@@ -73,14 +73,14 @@ export default function BudgetModal({ isOpen, onClose, onSave, categories, budge
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="category">Categoría</Label>
-            <Select value={category} onValueChange={setCategory} required>
+            <Select value={category} onValueChange={setCategory} required disabled={categoriesLoading}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecciona una categoría" />
               </SelectTrigger>
               <SelectContent>
-                {categories.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat}
+                {getExpenseCategories().map((cat) => (
+                  <SelectItem key={cat.id} value={cat.name}>
+                    {cat.name}
                   </SelectItem>
                 ))}
               </SelectContent>

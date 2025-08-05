@@ -23,23 +23,15 @@ import BudgetModal from "@/components/budget-modal"
 import AuthLayout from "@/components/auth/auth-layout"
 import Header from "@/components/layout/header"
 import { useAuth } from "@/hooks/use-auth"
-import type { Transaction, Budget } from "@/types/finance"
-
-const CATEGORIES = [
-  "Alimentación",
-  "Transporte",
-  "Entretenimiento",
-  "Salud",
-  "Educación",
-  "Servicios",
-  "Compras",
-  "Otros",
-]
+import type { Transaction, Budget, Category } from "@/types/finance"
+import CategoryModal from "@/components/category-modal"
+import { useCategories } from "@/hooks/use-categories"
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#82CA9D", "#FFC658", "#FF7C7C"]
 
 export default function PersonalFinanceApp() {
   const { user, loading } = useAuth()
+  const { categories, createCategory, updateCategory, deleteCategory } = useCategories()
 
   const [transactions, setTransactions] = useState<Transaction[]>([
     {
@@ -85,8 +77,10 @@ export default function PersonalFinanceApp() {
 
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false)
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false)
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false)
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null)
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null)
 
   const totalIncome = useMemo(
     () => transactions.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0),
@@ -205,6 +199,28 @@ export default function PersonalFinanceApp() {
     setIsBudgetModalOpen(true)
   }
 
+  const handleSaveCategory = async (categoryData: Omit<Category, "id" | "user_id" | "created_at" | "updated_at">) => {
+    if (editingCategory) {
+      const result = await updateCategory(editingCategory.id, categoryData)
+      if (!result.error) {
+        setEditingCategory(null)
+        setIsCategoryModalOpen(false)
+      }
+      return result
+    } else {
+      const result = await createCategory(categoryData)
+      if (!result.error) {
+        setIsCategoryModalOpen(false)
+      }
+      return result
+    }
+  }
+
+  const handleEditCategory = (category: Category) => {
+    setEditingCategory(category)
+    setIsCategoryModalOpen(true)
+  }
+
   // Show loading spinner while checking authentication
   if (loading) {
     return (
@@ -229,9 +245,10 @@ export default function PersonalFinanceApp() {
       <div className="p-4">
         <div className="max-w-7xl mx-auto">
           <Tabs defaultValue="dashboard" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
               <TabsTrigger value="budget">Presupuestos</TabsTrigger>
+              <TabsTrigger value="categories">Categorías</TabsTrigger>
             </TabsList>
 
             <TabsContent value="dashboard" className="space-y-6">
@@ -435,6 +452,44 @@ export default function PersonalFinanceApp() {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            <TabsContent value="categories" className="space-y-6">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle>Gestionar Categorías</CardTitle>
+                    <CardDescription>Personaliza tus categorías de ingresos y gastos</CardDescription>
+                  </div>
+                  <Button onClick={() => setIsCategoryModalOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Nueva Categoría
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {categories.map((category) => (
+                      <div key={category.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-4 h-4 rounded-full" style={{ backgroundColor: category.color }} />
+                          <div>
+                            <p className="font-medium">{category.name}</p>
+                            <p className="text-sm text-gray-500 capitalize">{category.type}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button variant="ghost" size="icon" onClick={() => handleEditCategory(category)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => deleteCategory(category.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
           </Tabs>
 
           {/* Modales */}
@@ -445,7 +500,7 @@ export default function PersonalFinanceApp() {
               setEditingTransaction(null)
             }}
             onSave={handleSaveTransaction}
-            categories={CATEGORIES}
+            categories={categories.map((c) => c.name)}
             transaction={editingTransaction}
           />
 
@@ -456,8 +511,18 @@ export default function PersonalFinanceApp() {
               setEditingBudget(null)
             }}
             onSave={handleSaveBudget}
-            categories={CATEGORIES}
+            categories={categories.map((c) => c.name)}
             budget={editingBudget}
+          />
+
+          <CategoryModal
+            isOpen={isCategoryModalOpen}
+            onClose={() => {
+              setIsCategoryModalOpen(false)
+              setEditingCategory(null)
+            }}
+            onSave={handleSaveCategory}
+            category={editingCategory}
           />
         </div>
       </div>
