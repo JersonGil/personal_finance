@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { toast } from "sonner"
 import CurrencyConverter from '@/components/currency-converter'
 import { currencies, formatBs } from "@/lib/utils"
+import capitalize from 'lodash/capitalize'
 
 const getDollarPrice = async () => {
   const res = await fetch('/api/get-dollar-price');
@@ -117,7 +118,12 @@ export default function BalanceView({
       <CardHeader>
         <CardTitle>Balance Actual por Categoría</CardTitle>
         <CardDescription>
-          Registra y visualiza los montos que posees en cada cuenta/categoría.
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+            Registra y visualiza los montos que posees en cada cuenta/categoría.
+            <p>
+              1 Bs = ${Number(price).toFixed(2)}
+            </p>
+          </div>
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -131,15 +137,13 @@ export default function BalanceView({
                 key={cat.id}
                 className="flex items-center border rounded-lg p-4 gap-4"
               >
-                {/* Info de la categoría y montos */}
                 <div className="flex flex-col flex-1">
-                  <span className="font-medium text-2xl">{cat.name}</span>
+                  <span className="font-medium text-2xl">{capitalize(cat.name)}</span>
                   <div className="flex flex-row items-center gap-2 mt-2">
                     <span className="text-2xl font-bold">${amountUsd.toFixed(2)}</span>
                     <span className="text-xs text-gray-500 mb-1">Bs {formatBs(amountBs)}</span>
                   </div>
                 </div>
-                {/* Iconos centrados y uno al lado del otro */}
                 <div className="flex flex-row items-center gap-2 self-center">
                   <Button
                     variant="ghost"
@@ -189,7 +193,6 @@ export default function BalanceView({
           )}
         </div>
       </CardContent>
-      {/* Modal para agregar/editar balance */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent>
           <DialogHeader>
