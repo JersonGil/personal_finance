@@ -96,7 +96,7 @@ export default function TransactionModal({ isOpen, onClose, onSave, transaction 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label>Tipo de Transacción</Label>
-            <RadioGroup value={form.type} onValueChange={(value) => handleChange("type", value as TransactionType)}>
+            <RadioGroup value={form.type} onValueChange={(value: string) => handleChange("type", value as TransactionType)}>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="income" id="income" />
                 <Label htmlFor="income">Ingreso</Label>
@@ -125,7 +125,7 @@ export default function TransactionModal({ isOpen, onClose, onSave, transaction 
             <Label htmlFor="category">Categoría</Label>
             <Select
               value={form.category}
-              onValueChange={(value) => handleChange("category", value)}
+              onValueChange={(value: string) => handleChange("category", value)}
               required
               disabled={categoriesLoading}
             >

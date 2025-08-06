@@ -4,6 +4,7 @@ import { useState, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TrendingUp, TrendingDown, DollarSign, Loader2 } from "lucide-react"
+import { ChartConfig, ChartContainer } from "@/components/ui/chart"
 import {
   LineChart,
   Line,
@@ -27,6 +28,17 @@ import { useTransactions } from "@/hooks/use-get-transactions"
 import BudgetView from "@/view/budget-view"
 import BalanceView from "@/view/balance-view"
 import SettingsView from "@/view/settings-view"
+
+const chartConfig = {
+  desktop: {
+    label: "ingresos",
+    color: "#10b981",
+  },
+  mobile: {
+    label: "gastos",
+    color: "#ef4444",
+  },
+} satisfies ChartConfig
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#82CA9D", "#FFC658", "#FF7C7C"]
 
@@ -180,16 +192,16 @@ export default function PersonalFinanceApp() {
                     <CardTitle>Movimiento de Dinero (Últimos 7 días)</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <LineChart data={chartData}>
+                    <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
+                      <LineChart accessibilityLayer  data={chartData}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="date" />
                         <YAxis />
                         <Tooltip formatter={(value) => [`$${value}`, ""]} />
-                        <Line type="monotone" dataKey="ingresos" stroke="#10b981" strokeWidth={2} />
-                        <Line type="monotone" dataKey="gastos" stroke="#ef4444" strokeWidth={2} />
+                        <Line type="monotone" dataKey="ingresos" stroke="var(--color-desktop)" strokeWidth={4} />
+                        <Line type="monotone" dataKey="gastos" stroke="var(--color-mobile)" strokeWidth={4} />
                       </LineChart>
-                    </ResponsiveContainer>
+                    </ChartContainer>
                   </CardContent>
                 </Card>
 
