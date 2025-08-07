@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import { ArrowRightLeft } from 'lucide-react';
 
 interface Currency {
   code: string;
@@ -13,7 +12,7 @@ interface CurrencyConverterProps {
   primaryCurrency: Currency
   secondaryCurrency: Currency
   className?: string
-  title: string
+  title?: string
   price: number
   onChangeAmount: (primary: string, secondary: string) => void
 }
@@ -28,21 +27,11 @@ const CurrencyConverter: React.FC<CurrencyConverterProps> = ({
 }) => {
   const [primaryAmount, setPrimaryAmount] = useState<string>('');
   const [secondaryAmount, setSecondaryAmount] = useState<string>('');
-  const [lastChanged, setLastChanged] = useState<'primary' | 'secondary' | null>(null);
 
   useEffect(() => {
     onChangeAmount(primaryAmount, secondaryAmount);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [primaryAmount, secondaryAmount])
-
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  };
 
   const parseAmount = (value: string): number => {
     const cleanValue = value.replace(/[^\d.-]/g, '');
@@ -51,7 +40,6 @@ const CurrencyConverter: React.FC<CurrencyConverterProps> = ({
 
   const handlePrimaryChange = (value: string) => {
     setPrimaryAmount(value);
-    setLastChanged('primary');
     
     const numericValue = parseAmount(value);
     if (numericValue === 0 && value === '') {
@@ -64,7 +52,6 @@ const CurrencyConverter: React.FC<CurrencyConverterProps> = ({
 
   const handleSecondaryChange = (value: string) => {
     setSecondaryAmount(value);
-    setLastChanged('secondary');
     
     const numericValue = parseAmount(value);
     if (numericValue === 0 && value === '') {
@@ -75,34 +62,12 @@ const CurrencyConverter: React.FC<CurrencyConverterProps> = ({
     }
   };
 
-  const calculateDifference = (): string => {
-    const primaryValue = parseAmount(primaryAmount);
-    const secondaryValue = parseAmount(secondaryAmount);
-    
-    if (primaryValue === 0 || secondaryValue === 0) return '0.00';
-
-    const expectedSecondary = primaryValue / Number(price);
-    const difference = Math.abs(expectedSecondary - secondaryValue);
-    
-    return difference.toFixed(2);
-  };
-
-  const swapCurrencies = () => {
-    setPrimaryAmount(secondaryAmount);
-    setSecondaryAmount(primaryAmount);
-    onChangeAmount(secondaryAmount, primaryAmount);
-    setLastChanged(lastChanged === 'primary' ? 'secondary' : 'primary');
-  };
-
   return (
-    <div className={`p-8 max-w-md mx-auto ${className}`}>
+    <div className={`p-2 max-w-md mx-auto ${className}`}>
       <div className="space-y-6">
         {/* Header */}
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-800 mb-2">{title}</h2>
-          <p className="text-sm text-gray-500">
-            1 {primaryCurrency.code} = {Number(price).toFixed(2)} {secondaryCurrency.code}
-          </p>
         </div>
 
         {/* Primary Currency Input */}
@@ -131,16 +96,6 @@ const CurrencyConverter: React.FC<CurrencyConverterProps> = ({
           </div>
         </div>
 
-        {/* Swap Button */}
-        <div className="flex justify-center">
-          <button
-            onClick={swapCurrencies}
-            className="p-3 rounded-full bg-blue-100 hover:bg-blue-200 transition-colors duration-200 group"
-          >
-            <ArrowRightLeft className="w-5 h-5 text-blue-600 group-hover:rotate-180 transition-transform duration-300" />
-          </button>
-        </div>
-
         {/* Secondary Currency Input */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">
@@ -165,21 +120,9 @@ const CurrencyConverter: React.FC<CurrencyConverterProps> = ({
               </span>
             </div>
           </div>
-        </div>
-
-        {/* Difference Amount */}
-        <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-          <div className="text-center">
-            <p className="text-sm text-gray-600 mb-1">Monto diferido</p>
-            <p className="text-lg font-bold text-gray-800">
-              {formatCurrency(parseFloat(calculateDifference()))}
-            </p>
-          </div>
-        </div>
-
-        {/* Exchange Rate Info */}
-        <div className="text-center text-xs text-gray-400 border-t pt-4">
-          <p>Exchange rates are updated in real-time</p>
+          <p className="text-sm mt-2 ml-2 text-gray-500">
+            1 {primaryCurrency.code} = {Number(price).toFixed(2)} {secondaryCurrency.code}
+          </p>
         </div>
       </div>
     </div>

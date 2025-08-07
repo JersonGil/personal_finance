@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import type { Transaction, TransactionType } from "@/types/finance"
+import { currencies } from "@/lib/utils"
+import CurrencyConverter from '@/components/currency-converter'
 
 interface TransactionModalProps {
   isOpen: boolean
@@ -19,8 +21,16 @@ interface TransactionModalProps {
   transaction?: Transaction | null
 }
 
+const getDollarPrice = async () => {
+  const res = await fetch('/api/get-dollar-price');
+  if (!res.ok) throw new Error('Error al obtener el precio del dólar');
+  const data = await res.json();
+  return data.price;
+}
+
 export default function TransactionModal({ isOpen, onClose, onSave, transaction }: Readonly<TransactionModalProps>) {
   const { getIncomeCategories, getExpenseCategories, loading: categoriesLoading } = useCategories()
+   const [price, setPrice] = useState<number>(0);
   const [form, setForm] = useState<{
     type: TransactionType
     amount: string
@@ -34,6 +44,10 @@ export default function TransactionModal({ isOpen, onClose, onSave, transaction 
     description: "",
     date: "",
   })
+
+  useEffect(() => {
+    getDollarPrice().then(setPrice).catch(() => setPrice(0));
+  }, []);
 
   useEffect(() => {
     if (transaction) {
@@ -94,9 +108,9 @@ export default function TransactionModal({ isOpen, onClose, onSave, transaction 
           <DialogTitle>{transaction ? "Editar Transacción" : "Nueva Transacción"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>Tipo de Transacción</Label>
-            <RadioGroup value={form.type} onValueChange={(value: string) => handleChange("type", value as TransactionType)}>
+          <div className="space-y-2 mb-6">
+            <Label className="mb-4">Tipo de Transacción</Label>
+            <RadioGroup className="flex flex-row gap-4" value={form.type} onValueChange={(value: string) => handleChange("type", value as TransactionType)}>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="income" id="income" />
                 <Label htmlFor="income">Ingreso</Label>
@@ -107,20 +121,6 @@ export default function TransactionModal({ isOpen, onClose, onSave, transaction 
               </div>
             </RadioGroup>
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="amount">Monto</Label>
-            <Input
-              id="amount"
-              type="number"
-              step="0.01"
-              placeholder="0.00"
-              value={form.amount}
-              onChange={(e) => handleChange("amount", e.target.value)}
-              required
-            />
-          </div>
-
           <div className="space-y-2">
             <Label htmlFor="category">Categoría</Label>
             <Select
@@ -129,7 +129,7 @@ export default function TransactionModal({ isOpen, onClose, onSave, transaction 
               required
               disabled={categoriesLoading}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Selecciona una categoría" />
               </SelectTrigger>
               <SelectContent>
@@ -147,7 +147,6 @@ export default function TransactionModal({ isOpen, onClose, onSave, transaction 
               </SelectContent>
             </Select>
           </div>
-
           <div className="space-y-2">
             <Label htmlFor="description">Descripción</Label>
             <Textarea
@@ -158,7 +157,6 @@ export default function TransactionModal({ isOpen, onClose, onSave, transaction 
               required
             />
           </div>
-
           <div className="space-y-2">
             <Label htmlFor="date">Fecha</Label>
             <Input
@@ -169,7 +167,15 @@ export default function TransactionModal({ isOpen, onClose, onSave, transaction 
               required
             />
           </div>
-
+          <div className="space-y-2">
+            <CurrencyConverter
+              className="mt-0"
+              primaryCurrency={currencies.BS}
+              secondaryCurrency={currencies.USD}
+              price={price}
+              onChangeAmount={(primary, secondary) => { handleChange("amount", secondary) }}
+            />
+          </div>
           <div className="flex justify-end space-x-2">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
