@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react"
 import { supabase } from '@/lib/supabase'
 import { useAuth } from "@/hooks/use-auth"
-import type { PostgrestError } from "@supabase/supabase-js"
 
 export type BalanceCategory = {
   id: string

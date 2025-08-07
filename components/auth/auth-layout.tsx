@@ -25,7 +25,7 @@ export default function AuthLayout() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {mode === "login" && <LoginForm onToggleMode={handleToggleMode} onForgotPassword={handleForgotPassword} />}
+        {mode === "login" && <LoginForm onForgotPassword={handleForgotPassword} />}
         {mode === "register" && <RegisterForm onToggleMode={handleToggleMode} />}
         {mode === "forgot-password" && <ForgotPasswordForm onBack={handleBackToLogin} />}
       </div>

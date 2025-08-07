@@ -17,7 +17,12 @@ export function useTransactions() {
       const { data, error } = await supabase.from("transactions").select("*").eq("user_id", user.id).order("date", { ascending: false })
 
       if (error) throw error
-      setTransactions(data || [])
+      setTransactions(
+        (data || []).map((item) => ({
+          ...item,
+          type: item.type as Transaction["type"],
+        }))
+      )
     } catch (error) {
       console.error("Error fetching categories:", error)
     } finally {
@@ -42,7 +47,13 @@ export function useTransactions() {
 
       if (error) throw error
 
-      setTransactions((prev) => [...prev, data])
+      setTransactions((prev) => [
+        ...prev,
+        {
+          ...data,
+          type: data.type as Transaction["type"],
+        },
+      ])
       return { data, error: null }
     } catch (error: unknown) {
       if (error instanceof Error) {

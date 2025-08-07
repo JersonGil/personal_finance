@@ -27,7 +27,14 @@ export function useCategories() {
       const { data, error } = await supabase.from("categories").select("*").eq("user_id", user.id).order("name")
 
       if (error) throw error
-      setCategories(data || [])
+      setCategories(
+        (data || []).map((cat) => ({
+          ...cat,
+          type: cat.type as "income" | "expense" | "both",
+          color: cat.color ?? "",
+          icon: cat.icon ?? "",
+        }))
+      )
     } catch (error) {
       console.error("Error fetching categories:", error)
     } finally {
@@ -51,8 +58,14 @@ export function useCategories() {
 
       if (error) throw error
 
-      setCategories((prev) => [...prev, data])
-      return { data, error: null }
+      const normalizedData: Category = {
+        ...data,
+        type: data.type as "income" | "expense" | "both",
+        color: data.color ?? "",
+        icon: data.icon ?? "",
+      }
+      setCategories((prev) => [...prev, normalizedData])
+      return { data: normalizedData, error: null }
     } catch (error: any) {
       return { data: null, error: error.message }
     }
@@ -72,7 +85,13 @@ export function useCategories() {
 
       if (error) throw error
 
-      setCategories((prev) => prev.map((cat) => (cat.id === id ? data : cat)))
+      const normalizedData: Category = {
+        ...data,
+        type: data.type as "income" | "expense" | "both",
+        color: data.color ?? "",
+        icon: data.icon ?? "",
+      }
+      setCategories((prev) => prev.map((cat) => (cat.id === id ? normalizedData : cat)))
       return { data, error: null }
     } catch (error: any) {
       return { data: null, error: error.message }
