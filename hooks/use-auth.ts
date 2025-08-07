@@ -42,7 +42,7 @@ export function useAuth() {
     const { data, error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: process.env.NODE_ENV === 'production' ? `https://jersongil.github.io/personal_finance/auth/confirm` : `${window.location.origin}/`,
+        emailRedirectTo: process.env.NODE_ENV === 'production' ? `https://jersongil.github.io/personal_finance/` : `${window.location.origin}/`,
       },
     })
     return { data, error }
