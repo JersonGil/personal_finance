@@ -9,10 +9,11 @@ import BudgetModal from "@/components/budget-modal"
 import type { Budget } from "@/types/finance"
 import { useTransactions } from "@/hooks/use-get-transactions"
 import NoTransactions from "@/components/no-transactions"
+import { useBudgets } from '@/hooks/use-budgets'
 
 export default function BudgetView() {
   const { transactions } = useTransactions()
-  const [budgets, setBudgets] = useState<Budget[]>([])
+  const { budgets } = useBudgets()
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false)
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null)
 
@@ -32,24 +33,6 @@ export default function BudgetView() {
       }
     })
   }, [budgets, transactions])
-
-  const handleSaveBudget = (budget: Omit<Budget, "id">) => {
-    if (editingBudget) {
-      setBudgets((prev) => prev.map((b) => (b.id === editingBudget.id ? { ...budget, id: editingBudget.id } : b)))
-      setEditingBudget(null)
-    } else {
-      const newBudget: Budget = {
-        ...budget,
-        id: Date.now().toString(),
-      }
-      setBudgets((prev) => [...prev, newBudget])
-    }
-    setIsBudgetModalOpen(false)
-  }
-
-  const handleDeleteBudget = (id: string) => {
-    setBudgets((prev) => prev.filter((b) => b.id !== id))
-  }
 
   const handleEditBudget = (budget: Budget) => {
     setEditingBudget(budget)
@@ -94,7 +77,7 @@ export default function BudgetView() {
                   <Button variant="ghost" size="icon" onClick={() => handleEditBudget(budget)}>
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleDeleteBudget(budget.id)}>
+                  <Button variant="ghost" size="icon">
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -127,7 +110,6 @@ export default function BudgetView() {
           setIsBudgetModalOpen(false)
           setEditingBudget(null)
         }}
-        onSave={handleSaveBudget}
         budget={editingBudget}
       />
     </Card>
