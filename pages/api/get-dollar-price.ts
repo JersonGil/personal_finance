@@ -8,6 +8,7 @@ export default async function handler(
 ) {
   try {
     const apiUrl = `${process.env.NEXT_PUBLIC_PRICE_URL}`
+    console.log('aqui')
 
     const response = await axios.get(apiUrl)
     const priceInfo = _.get(response.data, 'monitors.bcv', { price: 36.6 })

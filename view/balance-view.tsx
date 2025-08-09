@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Edit, Trash2, Loader2 } from "lucide-react"
@@ -12,13 +12,7 @@ import { toast } from "sonner"
 import CurrencyConverter from '@/components/currency-converter'
 import { currencies, formatBs } from "@/lib/utils"
 import capitalize from 'lodash/capitalize'
-
-const getDollarPrice = async () => {
-  const res = await fetch('/api/get-dollar-price');
-  if (!res.ok) throw new Error('Error al obtener el precio del dólar');
-  const data = await res.json();
-  return data.price;
-}
+import { useDollarPrice } from "@/providers/dollar-price-provider"
 
 export default function BalanceView({
   dashboardBalance,
@@ -31,12 +25,8 @@ export default function BalanceView({
   const [editingBalance, setEditingBalance] = useState<{ categoryId: string; amount: number, balanceId: string } | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<{ id: string; name: string } | null>(null)
   const [amount, setAmount] = useState("")
-  const [price, setPrice] = useState<number>(0);
   const { user } = useAuth()
-
-  useEffect(() => {
-    getDollarPrice().then(setPrice).catch(() => setPrice(0));
-  }, []);
+  const { price, loading: priceLoading, refresh: refreshPrice } = useDollarPrice()
 
   // Abrir modal para agregar/editar balance
   const openBalanceModal = (category: { id: string; name: string }, entry?: { amount: number, id: string }) => {
@@ -99,10 +89,7 @@ export default function BalanceView({
     setBalances((prev) => prev.filter((b) => b.category_id !== categoryId))
   }
 
-  const totalBalance = balances.reduce((sum, b) => sum + (isNaN(b.amount) ? 0 : b.amount), 0)
-  const totalBalanceBs = price ? totalBalance * price : 0
-
-  if (loadingCategories || loadingBalances) {
+  if (loadingCategories || loadingBalances || priceLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -113,6 +100,10 @@ export default function BalanceView({
     )
   }
 
+  // Reusar price directamente del provider
+  const totalBalance = balances.reduce((sum, b) => sum + (isNaN(b.amount) ? 0 : b.amount), 0)
+  const totalBalanceBs = price ? totalBalance * price : 0
+
   return (
     <Card className="shadow-md border">
       <CardHeader>
@@ -121,7 +112,11 @@ export default function BalanceView({
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             Registra y visualiza los montos que posees en cada cuenta/categoría.
             <p>
-              1 Bs = ${Number(price).toFixed(2)}
+              {price ? (
+                <>1 Bs = ${Number(price).toFixed(2)} <button onClick={refreshPrice} className="ml-2 text-xs underline">Actualizar</button></>
+              ) : (
+                <span className="text-xs text-red-500">No disponible</span>
+              )}
             </p>
           </div>
         </CardDescription>
@@ -205,7 +200,7 @@ export default function BalanceView({
               primaryCurrency={currencies.BS}
               secondaryCurrency={currencies.USD}
               title={selectedCategory ? selectedCategory.name : "Categoría"}
-              price={price}
+              price={price ?? 0}
               onChangeAmount={(primary, secondary) => { setAmount(secondary) }}
             />
             <div className="flex justify-end gap-2">

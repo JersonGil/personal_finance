@@ -47,7 +47,6 @@ export default function MoneyMovementChart({ transactions }: MoneyMovementChartP
 
     return last7Days.map((date) => {
       const dayTransactions = transactions.filter((t) => t.date === date)
-      console.log('Date:', date, 'dayTransactions:', dayTransactions) // Enhanced debugging
       const income = dayTransactions.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0)
       const expenses = dayTransactions.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0)
 
