@@ -3,7 +3,7 @@ import { useTransactions } from "@/hooks/use-get-transactions"
 import FinancialSummaryCards from "@/components/financial-summary-cards"
 import MoneyMovementChart from "@/components/money-movement-chart"
 import ExpensesByCategoryChart from "@/components/expenses-by-category-chart"
-import RecentTransactions from "@/view/recent-transactions"
+import RecentTransactions from "@/view/recent-transactions/recent-transactions"
 
 interface DashboardViewProps {
   readonly refetch: () => Promise<void>
