@@ -13,6 +13,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import type { Transaction, TransactionType } from "@/types/finance"
 import { currencies } from "@/lib/utils"
 import CurrencyConverter from '@/components/currency-converter'
+import { useDollarPrice } from '@/providers/dollar-price-provider'
 
 interface TransactionModalProps {
   isOpen: boolean
@@ -21,16 +22,9 @@ interface TransactionModalProps {
   transaction?: Transaction | null
 }
 
-const getDollarPrice = async () => {
-  const res = await fetch('/api/get-dollar-price');
-  if (!res.ok) throw new Error('Error al obtener el precio del dólar');
-  const data = await res.json();
-  return data.price;
-}
-
 export default function TransactionModal({ isOpen, onClose, onSave, transaction }: Readonly<TransactionModalProps>) {
   const { getIncomeCategories, getExpenseCategories, loading: categoriesLoading } = useCategories()
-   const [price, setPrice] = useState<number>(0);
+  const { price } = useDollarPrice()
   const [form, setForm] = useState<{
     type: TransactionType
     amount: string
@@ -44,10 +38,6 @@ export default function TransactionModal({ isOpen, onClose, onSave, transaction 
     description: "",
     date: "",
   })
-
-  useEffect(() => {
-    getDollarPrice().then(setPrice).catch(() => setPrice(0));
-  }, []);
 
   useEffect(() => {
     if (transaction) {
@@ -108,7 +98,7 @@ export default function TransactionModal({ isOpen, onClose, onSave, transaction 
           <DialogTitle>{transaction ? "Editar Transacción" : "Nueva Transacción"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2 mb-6">
+          <div className="space-y-2">
             <Label className="mb-4">Tipo de Transacción</Label>
             <RadioGroup className="flex flex-row gap-4" value={form.type} onValueChange={(value: string) => handleChange("type", value as TransactionType)}>
               <div className="flex items-center space-x-2">
@@ -172,7 +162,7 @@ export default function TransactionModal({ isOpen, onClose, onSave, transaction 
               className="mt-0"
               primaryCurrency={currencies.BS}
               secondaryCurrency={currencies.USD}
-              price={price}
+              price={price ?? 0}
               onChangeAmount={(primary, secondary) => { handleChange("amount", secondary) }}
             />
           </div>

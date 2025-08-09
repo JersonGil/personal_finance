@@ -5,10 +5,12 @@ import { useCategories } from "@/hooks/use-categories"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import CurrencyConverter from './currency-converter'
 import type { Budget } from "@/types/finance"
+import { currencies } from "@/lib/utils"
+import { useDollarPrice } from '@/providers/dollar-price-provider'
 
 interface BudgetModalProps {
   isOpen: boolean
@@ -19,6 +21,7 @@ interface BudgetModalProps {
 
 export default function BudgetModal({ isOpen, onClose, onSave, budget }: BudgetModalProps) {
   const { getExpenseCategories, loading: categoriesLoading } = useCategories()
+  const { price } = useDollarPrice()
   const [category, setCategory] = useState("")
   const [amount, setAmount] = useState("")
   const [month, setMonth] = useState("")
@@ -74,7 +77,7 @@ export default function BudgetModal({ isOpen, onClose, onSave, budget }: BudgetM
           <div className="space-y-2">
             <Label htmlFor="category">Categoría</Label>
             <Select value={category} onValueChange={setCategory} required disabled={categoriesLoading}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Selecciona una categoría" />
               </SelectTrigger>
               <SelectContent>
@@ -89,21 +92,19 @@ export default function BudgetModal({ isOpen, onClose, onSave, budget }: BudgetM
 
           <div className="space-y-2">
             <Label htmlFor="amount">Monto Presupuestado</Label>
-            <Input
-              id="amount"
-              type="number"
-              step="0.01"
-              placeholder="0.00"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              required
+            <CurrencyConverter
+              className="mt-0"
+              primaryCurrency={currencies.BS}
+              secondaryCurrency={currencies.USD}
+              price={price ?? 0}
+              onChangeAmount={(primary, secondary) => { setAmount(secondary) }}
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="month">Mes</Label>
             <Select value={month} onValueChange={setMonth} required>
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Selecciona un mes" />
               </SelectTrigger>
               <SelectContent>

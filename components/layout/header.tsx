@@ -12,13 +12,21 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { LogOut, User, Settings } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
+import { useDollarPrice } from '@/providers/dollar-price-provider'
+import { useEffect } from "react"
 
 export default function Header() {
   const { user, signOut } = useAuth()
+  const { refresh } = useDollarPrice()
 
   const handleSignOut = async () => {
     await signOut()
   }
+
+  useEffect(() => {
+    refresh()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const getInitials = (name: string) => {
     return name
