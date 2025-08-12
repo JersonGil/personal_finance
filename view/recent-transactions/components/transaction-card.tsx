@@ -46,7 +46,7 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
         <span
           className={`font-bold text-sm ${isIncome ? "text-green-600" : "text-red-600"}`}
         >
-          {isIncome ? "+" : "-"}${amount.toLocaleString()}
+          {isIncome ? "+" : "-"}${amount}
         </span>
         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onEdit}>
           <Edit className="h-3 w-3" />

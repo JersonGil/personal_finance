@@ -26,7 +26,7 @@ export function useTransactions(options?: { staleTime?: number; refetchOnWindowF
       try {
         setLoading(true)
         const { data, error } = await supabase
-          .from("transactions")
+         .from("transactions")
           .select("*")
           .eq("user_id", user.id)
           .order("date", { ascending: false })
@@ -48,7 +48,7 @@ export function useTransactions(options?: { staleTime?: number; refetchOnWindowF
         inFlightRef.current = null
       }
     })()
-    return inFlightRef.current
+    return inFlightRef.current 
   }, [user])
 
   // Fetch controlado por usuario + staleness

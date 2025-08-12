@@ -1,19 +1,20 @@
-'use client'
+"use client"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Plus } from "lucide-react"
 import type { Transaction } from "@/types/finance"
 import TransactionModal from "@/components/transaction-modal"
-import { useTransactions } from "@/hooks/use-get-transactions"
 import React, { useState } from "react"
 import { toast } from "sonner"
 import NoTransactions from "@/components/no-transactions"
 import TransactionCard from "./components/transaction-card"
+import { createTransaction } from "@/service/transactions"
 
-const RecentTransactions: React.FC<{ refetch: () => Promise<void> }> = ({ refetch }) => {
+const RecentTransactions: React.FC<{ 
+  transactions: Transaction[]
+}> = ({ transactions }) => {
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false)
-  const { transactions, createTransaction } = useTransactions()
 
   const handleSaveTransaction = async (transaction: Omit<Transaction, "id">) => {
     const { error } = await createTransaction(transaction)
@@ -23,13 +24,12 @@ const RecentTransactions: React.FC<{ refetch: () => Promise<void> }> = ({ refetc
     } else {
       setIsTransactionModalOpen(false)
       toast.success("Transacción guardada correctamente.")
-      await refetch()
     }
   }
 
-  // Filtrar ingresos y egresos
-  const incomeTransactions = transactions.filter((t) => t.type === "income").slice(-10).reverse()
-  const expenseTransactions = transactions.filter((t) => t.type === "expense").slice(-10).reverse()
+  // Filtrar ingresos y egresos desde props
+  const incomeTransactions = (transactions ?? []).filter((t) => t.type === "income").slice(-10).reverse()
+  const expenseTransactions = (transactions ?? []).filter((t) => t.type === "expense").slice(-10).reverse()
 
   return (
     <>
