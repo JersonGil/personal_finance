@@ -19,7 +19,7 @@ export default async function DashboardView() {
         .from("transactions")
         .select("*")
         .eq("user_id", user.id)
-        .order("date", { ascending: false })
+  .order("date", { ascending: false })
       if (!error && data) transactions = data
     }
   } catch {

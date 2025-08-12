@@ -19,6 +19,9 @@ const RecentTransactions: React.FC = () => {
   const replaceTemp = useTransactionsStore(s => s.replaceTemp)
   const removeTransaction = useTransactionsStore(s => s.removeTransaction)
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false)
+  const PAGE_SIZE = 5
+  const [incomePage, setIncomePage] = useState(0)
+  const [expensePage, setExpensePage] = useState(0)
 
   const handleSaveTransaction = async (transaction: Pick<Transaction, "type" | "amount" | "category" | "description" | "date">) => {
     // Optimistic placeholder id
@@ -48,8 +51,16 @@ const RecentTransactions: React.FC = () => {
   }
 
   // Filtrar ingresos y egresos desde props
-  const incomeTransactions = (transactions ?? []).filter((t) => t.type === "income").slice(-10).reverse()
-  const expenseTransactions = (transactions ?? []).filter((t) => t.type === "expense").slice(-10).reverse()
+  const incomeTransactionsAll = (transactions ?? []).filter((t) => t.type === "income")
+  const expenseTransactionsAll = (transactions ?? []).filter((t) => t.type === "expense")
+  const totalIncomePages = Math.max(1, Math.ceil(incomeTransactionsAll.length / PAGE_SIZE))
+  const totalExpensePages = Math.max(1, Math.ceil(expenseTransactionsAll.length / PAGE_SIZE))
+  const clampedIncomePage = Math.min(incomePage, totalIncomePages - 1)
+  const clampedExpensePage = Math.min(expensePage, totalExpensePages - 1)
+  const incomeSliceStart = clampedIncomePage * PAGE_SIZE
+  const expenseSliceStart = clampedExpensePage * PAGE_SIZE
+  const incomeTransactions = incomeTransactionsAll.slice(incomeSliceStart, incomeSliceStart + PAGE_SIZE)
+  const expenseTransactions = expenseTransactionsAll.slice(expenseSliceStart, expenseSliceStart + PAGE_SIZE)
 
   return (
     <>
@@ -88,6 +99,25 @@ const RecentTransactions: React.FC = () => {
               ) : (
                 <NoTransactions messages="No hay ingresos registrados aún." />
               )}
+              {incomeTransactionsAll.length > PAGE_SIZE && (
+                <div className="flex items-center justify-between pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={clampedIncomePage === 0}
+                    onClick={() => setIncomePage(p => Math.max(0, p - 1))}
+                  >Anterior</Button>
+                  <span className="text-xs text-muted-foreground">
+                    Página {clampedIncomePage + 1} de {totalIncomePages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={clampedIncomePage >= totalIncomePages - 1}
+                    onClick={() => setIncomePage(p => Math.min(totalIncomePages - 1, p + 1))}
+                  >Siguiente</Button>
+                </div>
+              )}
             </div>
 
             {/* Columna Egresos */}
@@ -111,6 +141,25 @@ const RecentTransactions: React.FC = () => {
                 ))
               ) : (
                 <NoTransactions messages="No hay egresos registrados aún." />
+              )}
+              {expenseTransactionsAll.length > PAGE_SIZE && (
+                <div className="flex items-center justify-between pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={clampedExpensePage === 0}
+                    onClick={() => setExpensePage(p => Math.max(0, p - 1))}
+                  >Anterior</Button>
+                  <span className="text-xs text-muted-foreground">
+                    Página {clampedExpensePage + 1} de {totalExpensePages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={clampedExpensePage >= totalExpensePages - 1}
+                    onClick={() => setExpensePage(p => Math.min(totalExpensePages - 1, p + 1))}
+                  >Siguiente</Button>
+                </div>
               )}
             </div>
           </div>
