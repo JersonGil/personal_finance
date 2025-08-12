@@ -6,16 +6,18 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Plus, Edit, Trash2 } from "lucide-react"
 import BudgetModal from "@/components/budget-modal"
-import type { Budget } from "@/types/finance"
+import type { Database } from "@/types/supabase"
 import { useTransactions } from "@/hooks/use-get-transactions"
 import NoTransactions from "@/components/no-transactions"
 import { useBudgets } from '@/hooks/use-budgets'
 
-export default function BudgetView() {
+type BudgetRow = Database["public"]["Tables"]["budgets"]["Row"]
+
+export default function BudgetView({ initialBudgets }: Readonly<{ initialBudgets?: BudgetRow[] }>) {
   const { transactions } = useTransactions()
-  const { budgets } = useBudgets()
+  const { budgets } = useBudgets({ initialData: initialBudgets })
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false)
-  const [editingBudget, setEditingBudget] = useState<Budget | null>(null)
+  const [editingBudget, setEditingBudget] = useState<BudgetRow | null>(null)
 
   const budgetComparison = useMemo(() => {
     const currentMonth = new Date().toISOString().slice(0, 7)
@@ -34,9 +36,21 @@ export default function BudgetView() {
     })
   }, [budgets, transactions])
 
-  const handleEditBudget = (budget: Budget) => {
+  const handleEditBudget = (budget: BudgetRow) => {
     setEditingBudget(budget)
     setIsBudgetModalOpen(true)
+  }
+
+  const badgeVariant = (p: number) => {
+    if (p > 90) return "destructive"
+    if (p > 70) return "secondary"
+    return "default"
+  }
+
+  const barColor = (p: number) => {
+    if (p > 90) return "bg-red-500"
+    if (p > 70) return "bg-yellow-500"
+    return "bg-green-500"
   }
 
   return (
@@ -63,15 +77,7 @@ export default function BudgetView() {
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Badge
-                    variant={
-                      budget.percentage > 90
-                        ? "destructive"
-                        : budget.percentage > 70
-                          ? "secondary"
-                          : "default"
-                    }
-                  >
+                  <Badge variant={badgeVariant(budget.percentage)}>
                     {budget.percentage.toFixed(0)}%
                   </Badge>
                   <Button variant="ghost" size="icon" onClick={() => handleEditBudget(budget)}>
@@ -84,13 +90,7 @@ export default function BudgetView() {
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
-                  className={`h-2 rounded-full transition-all ${
-                    budget.percentage > 90
-                      ? "bg-red-500"
-                      : budget.percentage > 70
-                        ? "bg-yellow-500"
-                        : "bg-green-500"
-                  }`}
+                  className={`h-2 rounded-full transition-all ${barColor(budget.percentage)}`}
                   style={{ width: `${Math.min(budget.percentage, 100)}%` }}
                 />
               </div>

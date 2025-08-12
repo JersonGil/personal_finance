@@ -18,7 +18,7 @@ import { useDollarPrice } from '@/providers/dollar-price-provider'
 interface TransactionModalProps {
   isOpen: boolean
   onClose: () => void
-  onSave: (transaction: Omit<Transaction, "id">) => void
+  onSave: (transaction: Pick<Transaction, "type" | "amount" | "category" | "description" | "date">) => void
   transaction?: Transaction | null
 }
 

@@ -5,12 +5,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { signInWithMagicLink } from "@/app/login/actions"
+import { useFormState } from "react-dom"
 
 interface LoginFormProps {
   onForgotPassword: () => void
 }
 
-export default function LoginForm({ onForgotPassword }: LoginFormProps) {
+export default function LoginForm({ onForgotPassword }: Readonly<LoginFormProps>) {
+  const initialState = { errors: undefined as string[] | undefined, messages: "" }
+  const [state, formAction] = useFormState(signInWithMagicLink, initialState)
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="space-y-1">
@@ -18,7 +21,7 @@ export default function LoginForm({ onForgotPassword }: LoginFormProps) {
         <CardDescription className="text-center">Ingresa tus credenciales para acceder a tu cuenta</CardDescription>
       </CardHeader>
       <CardContent>
-        <form className="space-y-4">
+  <form className="space-y-4" action={formAction}>
           <div className="space-y-2">
             <Label htmlFor="email">Correo Electrónico</Label>
             <Input
@@ -30,13 +33,21 @@ export default function LoginForm({ onForgotPassword }: LoginFormProps) {
           </div>
 
           <Button
-            type="button"
+            type="submit"
             className="w-full"
             variant="outline"
-            formAction={signInWithMagicLink}
           >
             Iniciar con enlace mágico
           </Button>
+
+          {state.errors && state.errors.length > 0 && (
+            <ul className="text-sm text-red-500 list-disc list-inside">
+              {state.errors.map(err => <li key={err}>{err}</li>)}
+            </ul>
+          )}
+          {state.messages && !state.errors && (
+            <p className="text-sm text-green-600">{state.messages}</p>
+          )}
 
           <div className="text-center space-y-2">
             <Button type="button" variant="link" className="text-sm" onClick={onForgotPassword}>

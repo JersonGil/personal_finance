@@ -9,12 +9,12 @@ type BudgetRow = Database["public"]["Tables"]["budgets"]["Row"]
 type BudgetInsert = Database["public"]["Tables"]["budgets"]["Insert"]
 type BudgetUpdate = Database["public"]["Tables"]["budgets"]["Update"]
 
-export function useBudgets(options?: { staleTime?: number; refetchOnWindowFocus?: boolean }) {
+export function useBudgets(options?: { staleTime?: number; refetchOnWindowFocus?: boolean; initialData?: BudgetRow[] }) {
   const staleTime = options?.staleTime ?? 5 * 60 * 1000
   const refetchOnWindowFocus = options?.refetchOnWindowFocus ?? false
 
-  const [budgets, setBudgets] = useState<BudgetRow[]>([])
-  const [loading, setLoading] = useState(true)
+  const [budgets, setBudgets] = useState<BudgetRow[]>(options?.initialData ?? [])
+  const [loading, setLoading] = useState(!options?.initialData)
   const { user } = useAuth()
 
   // Guards y caché de última consulta
@@ -58,7 +58,7 @@ export function useBudgets(options?: { staleTime?: number; refetchOnWindowFocus?
     if (!user) return
     const userChanged = lastUserIdRef.current !== user.id
     const isStale = Date.now() - lastFetchedAtRef.current > staleTime
-    if (userChanged || isStale || budgets.length === 0) {
+  if (userChanged || isStale || budgets.length === 0) {
       void fetchBudgets()
     } else {
       setLoading(false)

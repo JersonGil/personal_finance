@@ -29,9 +29,14 @@ export default async function RootLayout({
 
   try {
     const sb = await createClient()
-    const { data } = await sb.auth.getSession()
-    initialSession = data.session
-    initialUser = data.session?.user ?? null
+    // Fetch authenticated user with a round-trip (more secure than relying solely on cached session)
+    const { data: { user } } = await sb.auth.getUser()
+    initialUser = user ?? null
+    // Optionally still obtain session (tokens, expiry) after establishing authentic user
+    if (user) {
+      const { data: sessionData } = await sb.auth.getSession()
+      initialSession = sessionData.session
+    }
   } catch {
     // ignore
   }

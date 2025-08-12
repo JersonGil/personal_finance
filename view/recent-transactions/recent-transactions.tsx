@@ -11,19 +11,39 @@ import NoTransactions from "@/components/no-transactions"
 import TransactionCard from "./components/transaction-card"
 import { createTransaction } from "@/service/transactions"
 
-const RecentTransactions: React.FC<{ 
-  transactions: Transaction[]
-}> = ({ transactions }) => {
+import { useTransactionsStore } from "@/store/transactions-store"
+
+const RecentTransactions: React.FC = () => {
+  const transactions = useTransactionsStore(s => s.transactions)
+  const addTransaction = useTransactionsStore(s => s.addTransaction)
+  const replaceTemp = useTransactionsStore(s => s.replaceTemp)
+  const removeTransaction = useTransactionsStore(s => s.removeTransaction)
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false)
 
-  const handleSaveTransaction = async (transaction: Omit<Transaction, "id">) => {
-    const { error } = await createTransaction(transaction)
+  const handleSaveTransaction = async (transaction: Pick<Transaction, "type" | "amount" | "category" | "description" | "date">) => {
+    // Optimistic placeholder id
+    const tempId = `temp-${Date.now()}`
+    const optimistic: Transaction = {
+      id: tempId,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      user_id: "optimistic",
+      ...transaction,
+    }
+    addTransaction(optimistic)
+  const { error, data } = await createTransaction(transaction)
     if (error) {
       toast.error("Hubo un error al guardar la transacción.")
       console.error("Error saving transaction:", error)
+      // Rollback optimistic placeholder
+      removeTransaction(tempId)
     } else {
       setIsTransactionModalOpen(false)
       toast.success("Transacción guardada correctamente.")
+      if (data) {
+        // Replace temp with actual row to avoid double counting
+        replaceTemp(tempId, data as unknown as Transaction)
+      }
     }
   }
 

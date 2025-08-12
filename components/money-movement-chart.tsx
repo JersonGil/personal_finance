@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
+import { useTransactionsStore } from "@/store/transactions-store"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartConfig, ChartContainer } from "@/components/ui/chart"
 import {
@@ -23,18 +24,8 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-interface Transaction {
-  date: string
-  type: "income" | "expense"
-  amount: number
-  category: string
-}
-
-interface MoneyMovementChartProps {
-  transactions: Transaction[]
-}
-
-export default function MoneyMovementChart({ transactions }: MoneyMovementChartProps) {
+export default function MoneyMovementChart() {
+  const transactions = useTransactionsStore(s => s.transactions)
   const chartData = useMemo(() => {
     const last7Days = Array.from({ length: 7 }, (_, i) => {
       // Create date in local timezone to avoid timezone offset issues

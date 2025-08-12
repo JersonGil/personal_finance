@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
+import { useTransactionsStore } from "@/store/transactions-store"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   ResponsiveContainer,
@@ -12,18 +13,8 @@ import {
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#82CA9D", "#FFC658", "#FF7C7C"]
 
-interface Transaction {
-  date: string
-  type: "income" | "expense"
-  amount: number
-  category: string
-}
-
-interface ExpensesByCategoryChartProps {
-  transactions: Transaction[]
-}
-
-export default function ExpensesByCategoryChart({ transactions }: ExpensesByCategoryChartProps) {
+export default function ExpensesByCategoryChart() {
+  const transactions = useTransactionsStore(s => s.transactions)
   const expensesByCategory = useMemo(() => {
     const categoryTotals = transactions
       .filter((t) => t.type === "expense")
@@ -60,7 +51,7 @@ export default function ExpensesByCategoryChart({ transactions }: ExpensesByCate
               dataKey="value"
             >
               {expensesByCategory.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                <Cell key={`cell-${entry.name}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
             <Tooltip formatter={(value) => [`$${value}`, "Monto"]} />

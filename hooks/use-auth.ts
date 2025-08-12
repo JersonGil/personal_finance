@@ -14,9 +14,11 @@ export function useAuth() {
   useEffect(() => {
     // Get initial session
     if (!bootstrap?.initialUser) {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        setSession(session)
-        setUser(session?.user ?? null)
+      // Secure fetch of authenticated user (server round-trip)
+      supabase.auth.getUser().then(async ({ data }) => {
+        setUser(data.user ?? null)
+        const { data: sess } = await supabase.auth.getSession()
+        setSession(sess.session)
         setLoading(false)
       })
     }
@@ -24,10 +26,20 @@ export function useAuth() {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
+    } = supabase.auth.onAuthStateChange((event) => {
+      // After sign-in or token refresh, re-validate user from server for authenticity
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        supabase.auth.getUser().then(async ({ data }) => {
+          setUser(data.user ?? null)
+          const { data: sess } = await supabase.auth.getSession()
+          setSession(sess.session)
+          setLoading(false)
+        })
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null)
+        setSession(null)
+        setLoading(false)
+      }
     })
 
     return () => subscription.unsubscribe()

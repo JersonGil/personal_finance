@@ -1,6 +1,8 @@
 "use client"
 
 import React, { useState } from "react"
+import type { Database } from "@/types/supabase"
+import type { BalanceCategory } from "@/hooks/use-balance-categories"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Edit, Trash2, Loader2 } from "lucide-react"
@@ -16,11 +18,15 @@ import { useDollarPrice } from "@/providers/dollar-price-provider"
 
 export default function BalanceView({
   dashboardBalance,
+  initialBalances,
+  initialCategories,
 }: Readonly<{
   dashboardBalance?: number
+  initialBalances?: Database["public"]["Tables"]["balances"]["Row"][]
+  initialCategories?: BalanceCategory[]
 }>) {
-  const { categories, loading: loadingCategories } = useBalanceCategories()
-  const { balances, setBalances, loading: loadingBalances, createBalance, refetch, updateBalance } = useBalances()
+  const { categories, loading: loadingCategories } = useBalanceCategories(initialCategories)
+  const { balances, setBalances, loading: loadingBalances, createBalance, refetch, updateBalance } = useBalances(initialBalances)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingBalance, setEditingBalance] = useState<{ categoryId: string; amount: number, balanceId: string } | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<{ id: string; name: string } | null>(null)
