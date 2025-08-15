@@ -6,6 +6,7 @@ import { DollarPriceProvider } from "@/providers/dollar-price-provider"
 import { createClient } from "@/lib/server"
 import { AuthProvider } from "@/components/auth/auth-provider"
 import { ThemeProvider } from '@/components/theme-provider'
+import { GlobalLoader } from '@/components/global-loader'
 import {
   SidebarProvider,
 } from "@/components/ui/sidebar"
@@ -44,6 +45,7 @@ export default async function RootLayout({
     <html lang="es">
       <body className={`${inter.className} antialiased`}>
         <ThemeProvider>
+          <GlobalLoader />
           <DollarPriceProvider>
             <AuthProvider initialUser={initialUser} initialSession={initialSession}>
               <div className="flex h-screen bg-background">
