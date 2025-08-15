@@ -37,7 +37,7 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
         <div className={`w-2 h-2 rounded-full ${isIncome ? "bg-green-500" : "bg-red-500"}`} />
         <div>
           <p className="font-medium text-sm">{description}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+          <p className="text-xs text-muted-foreground">
             {category} • {date}
           </p>
         </div>

@@ -70,7 +70,7 @@ const RecentTransactions: React.FC = () => {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
             <div>
               <h2 className="text-xl font-bold">Transacciones Recientes</h2>
-              <p className="text-gray-500">Tus últimos movimientos financieros</p>
+              <p className="text-muted-foreground">Tus últimos movimientos financieros</p>
             </div>
             <Button onClick={() => setIsTransactionModalOpen(true)} variant="default">
               <Plus className="h-4 w-4 mr-2" />

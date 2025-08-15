@@ -72,7 +72,7 @@ export default function BudgetView({ initialBudgets }: Readonly<{ initialBudgets
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-medium">{budget.category}</h3>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     ${budget.spent.toLocaleString()} de ${budget.amount.toLocaleString()} gastado
                   </p>
                 </div>
@@ -94,7 +94,7 @@ export default function BudgetView({ initialBudgets }: Readonly<{ initialBudgets
                   style={{ width: `${Math.min(budget.percentage, 100)}%` }}
                 />
               </div>
-              <div className="flex justify-between text-sm text-gray-500">
+              <div className="flex justify-between text-sm text-muted-foreground">
                 <span>Restante: ${budget.remaining.toLocaleString()}</span>
                 <span>{budget.month}</span>
               </div>

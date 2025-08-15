@@ -61,7 +61,7 @@ export default function TransactionCategoriesView() {
                   <div className="w-4 h-4 rounded-full" style={{ backgroundColor: category.color }} />
                   <div>
                     <p className="font-medium">{category.name}</p>
-                    <p className="text-sm text-gray-500 capitalize">{category.type}</p>
+                    <p className="text-sm text-muted-foreground capitalize">{category.type}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">

@@ -145,13 +145,13 @@ export default function RegisterForm({ onToggleMode }: RegisterFormProps) {
                 disabled={loading}
               >
                 {showPassword ? (
-                  <EyeOff className="h-4 w-4 text-gray-400" />
+                  <EyeOff className="h-4 w-4 text-muted-foreground" />
                 ) : (
-                  <Eye className="h-4 w-4 text-gray-400" />
+                  <Eye className="h-4 w-4 text-muted-foreground" />
                 )}
               </Button>
             </div>
-            <p className="text-xs text-gray-500">Mínimo 6 caracteres</p>
+            <p className="text-xs text-muted-foreground">Mínimo 6 caracteres</p>
           </div>
 
           <div className="space-y-2">
@@ -175,9 +175,9 @@ export default function RegisterForm({ onToggleMode }: RegisterFormProps) {
                 disabled={loading}
               >
                 {showConfirmPassword ? (
-                  <EyeOff className="h-4 w-4 text-gray-400" />
+                  <EyeOff className="h-4 w-4 text-muted-foreground" />
                 ) : (
-                  <Eye className="h-4 w-4 text-gray-400" />
+                  <Eye className="h-4 w-4 text-muted-foreground" />
                 )}
               </Button>
             </div>
@@ -189,7 +189,7 @@ export default function RegisterForm({ onToggleMode }: RegisterFormProps) {
           </Button>
 
           <div className="text-center">
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-muted-foreground">
               ¿Ya tienes cuenta?{" "}
               <Button
                 type="button"
