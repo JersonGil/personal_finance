@@ -5,12 +5,11 @@ import { Toaster } from "@/components/ui/sonner"
 import { DollarPriceProvider } from "@/providers/dollar-price-provider"
 import { createClient } from "@/lib/server"
 import { AuthProvider } from "@/components/auth/auth-provider"
-import Header from "@/components/layout/header"
+import { ThemeProvider } from '@/components/theme-provider'
 import {
   SidebarProvider,
-  SidebarInset,
 } from "@/components/ui/sidebar"
-import AppSidebar from "@/components/layout/app-sidebar"
+import { Sidebar } from "@/components/layout/app-sidebar"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -43,21 +42,22 @@ export default async function RootLayout({
 
   return (
     <html lang="es">
-      <body className={`${inter.className} antialiased`}>        
-        <DollarPriceProvider>
-          <AuthProvider initialUser={initialUser} initialSession={initialSession}>
-            <SidebarProvider>
-              <AppSidebar />
-              <SidebarInset>
-                <Header />
-                <main className="p-4 max-w-7xl mx-auto w-full space-y-6">
-                  {children}
-                </main>
-              </SidebarInset>
-            </SidebarProvider>
-          </AuthProvider>
-        </DollarPriceProvider>
-        <Toaster />
+      <body className={`${inter.className} antialiased`}>
+        <ThemeProvider>
+          <DollarPriceProvider>
+            <AuthProvider initialUser={initialUser} initialSession={initialSession}>
+              <div className="flex h-screen bg-background">
+                <SidebarProvider>
+                  <Sidebar />
+                  <main className="p-4 max-w-7xl mx-auto w-full space-y-6">
+                    {children}
+                  </main>
+                </SidebarProvider>
+              </div>
+            </AuthProvider>
+          </DollarPriceProvider>
+          <Toaster />
+        </ThemeProvider> 
       </body>
     </html>
   )
