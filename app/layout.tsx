@@ -48,10 +48,10 @@ export default async function RootLayout({
           <GlobalLoader />
           <DollarPriceProvider>
             <AuthProvider initialUser={initialUser} initialSession={initialSession}>
-              <div className="flex h-screen bg-background">
+              <div className="bg-background min-h-screen">
                 <SidebarProvider>
                   <Sidebar />
-                  <main className="p-4 max-w-7xl mx-auto w-full space-y-6">
+                  <main className="p-4 max-w-7xl mx-auto w-full space-y-6 lg:ml-64">
                     {children}
                   </main>
                 </SidebarProvider>

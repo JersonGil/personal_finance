@@ -43,9 +43,9 @@ const navigation = [
     icon: Receipt,
   },
   {
-    name: "Configuración",
-    href: "/settings",
-    icon: Tags,
+    name: "Balance",
+    href: "/balance",
+    icon: Wallet,
   },
   {
     name: "Presupuestos",
@@ -53,14 +53,14 @@ const navigation = [
     icon: PiggyBank,
   },
   {
-    name: "Balance",
-    href: "/balance",
-    icon: Wallet,
-  },
-  {
     name: "Planificación",
     href: "/planning",
     icon: Calendar,
+  },
+  {
+    name: "Configuración",
+    href: "/settings",
+    icon: Tags,
   },
 ]
 
@@ -107,7 +107,8 @@ export function Sidebar() {
       {/* Sidebar */}
       <div
         className={cn(
-          "fixed left-0 top-0 z-40 h-full w-64 bg-background border-r transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:z-auto",
+          // Fixed sidebar always (desktop + mobile) occupying full viewport height
+          "fixed left-0 top-0 z-40 h-screen w-64 bg-background border-r transform transition-transform duration-200 ease-in-out lg:translate-x-0 overflow-y-auto",
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
       >
