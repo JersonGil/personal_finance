@@ -10,9 +10,9 @@ type Balance = Database["public"]["Tables"]["balances"]["Row"] & {
   }
 }
 
-export function useBalances() {
-  const [balances, setBalances] = useState<Balance[]>([])
-  const [loading, setLoading] = useState(true)
+export function useBalances(initialData?: Balance[]) {
+  const [balances, setBalances] = useState<Balance[]>(initialData ?? [])
+  const [loading, setLoading] = useState(!initialData)
   const { user } = useAuth()
 
   const fetchBalances = async () => {
@@ -35,7 +35,11 @@ export function useBalances() {
   }
 
   useEffect(() => {
-    fetchBalances()
+    if (!initialData || initialData.length === 0) {
+      fetchBalances()
+    } else {
+      setLoading(false)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 
@@ -53,8 +57,8 @@ export function useBalances() {
 
       setBalances((prev) => [...prev, data])
       return { data, error: null }
-    } catch (error: any) {
-      return { data: null, error: error.message }
+    } catch (error: unknown) {
+      return { data: null, error: error instanceof Error ? error.message : 'Unknown error' }
     }
   }
 
@@ -74,8 +78,8 @@ export function useBalances() {
 
       setBalances((prev) => prev.map((bal) => (bal.id === id ? data : bal)))
       return { data, error: null }
-    } catch (error: any) {
-      return { data: null, error: error.message }
+    } catch (error: unknown) {
+      return { data: null, error: error instanceof Error ? error.message : 'Unknown error' }
     }
   }
 
@@ -93,8 +97,8 @@ export function useBalances() {
 
       setBalances((prev) => prev.filter((bal) => bal.id !== id))
       return { error: null }
-    } catch (error: any) {
-      return { error: error.message }
+    } catch (error: unknown) {
+      return { error: error instanceof Error ? error.message : 'Unknown error' }
     }
   }
 

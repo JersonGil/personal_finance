@@ -1,46 +1,53 @@
-import { useMemo } from "react"
-import { useTransactions } from "@/hooks/use-get-transactions"
 import FinancialSummaryCards from "@/components/financial-summary-cards"
 import MoneyMovementChart from "@/components/money-movement-chart"
 import ExpensesByCategoryChart from "@/components/expenses-by-category-chart"
-import RecentTransactions from "@/view/recent-transactions"
+import RecentTransactions from "@/view/recent-transactions/recent-transactions"
+import HydrateTransactions from "@/view/recent-transactions/transactions-hydrator"
+import TransactionsRealtime from "@/view/recent-transactions/transactions-realtime"
+import type { Transaction } from "@/types/finance"
+import { createClient } from "@/lib/server"
 
-interface DashboardViewProps {
-  readonly refetch: () => Promise<void>
-}
+export default async function DashboardView() {
+  const sb = await createClient()
+  let transactions: Transaction[] = []
+  let userId: string | null = null
+  try {
+    const { data: { user } } = await sb.auth.getUser()
+    if (user) {
+      userId = user.id
+      const { data, error } = await sb
+        .from("transactions")
+        .select("*")
+        .eq("user_id", user.id)
+  .order("date", { ascending: false })
+      if (!error && data) transactions = data
+    }
+  } catch {
+    // ignore
+  }
 
-export default function DashboardView({ refetch }: DashboardViewProps) {
-  const { transactions } = useTransactions()
-
-  const totalIncome = useMemo(
-    () => transactions.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0),
-    [transactions],
-  )
-
-  const totalExpenses = useMemo(
-    () => transactions.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0),
-    [transactions],
-  )
-
+  const totalIncome = transactions
+    .filter(t => t.type === 'income')
+    .reduce((sum, t) => sum + (isNaN(t.amount) ? 0 : t.amount), 0)
+  const totalExpenses = transactions
+    .filter(t => t.type === 'expense')
+    .reduce((sum, t) => sum + (isNaN(t.amount) ? 0 : t.amount), 0)
   const balance = totalIncome - totalExpenses
 
   return (
     <div className="space-y-6">
-      {/* Resumen financiero */}
-      <FinancialSummaryCards 
+      <FinancialSummaryCards
         totalIncome={totalIncome}
         totalExpenses={totalExpenses}
         balance={balance}
       />
-
-      {/* Gráficas */}
+  <HydrateTransactions initialTransactions={transactions} />
+  <TransactionsRealtime userId={userId} />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <MoneyMovementChart transactions={transactions} />
-        <ExpensesByCategoryChart transactions={transactions} />
+        <MoneyMovementChart />
+        <ExpensesByCategoryChart />
       </div>
-
-      {/* Lista de transacciones */}
-      <RecentTransactions refetch={refetch} />
+      <RecentTransactions />
     </div>
   )
 }

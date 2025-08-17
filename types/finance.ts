@@ -1,12 +1,15 @@
 export type TransactionType = "income" | "expense"
 
 export interface Transaction {
-  id: string
-  type: TransactionType
   amount: number
   category: string
-  description: string
+  created_at: string
   date: string
+  description: string
+  id: string
+  type: TransactionType
+  updated_at: string
+  user_id: string
 }
 
 export interface Budget {

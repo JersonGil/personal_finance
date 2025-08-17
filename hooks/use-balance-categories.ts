@@ -10,9 +10,9 @@ export type BalanceCategory = {
   updated_at?: string
 }
 
-export function useBalanceCategories() {
-  const [categories, setCategories] = useState<BalanceCategory[]>([])
-  const [loading, setLoading] = useState(true)
+export function useBalanceCategories(initialData?: BalanceCategory[]) {
+  const [categories, setCategories] = useState<BalanceCategory[]>(initialData ?? [])
+  const [loading, setLoading] = useState(!initialData)
   const { user } = useAuth()
 
   const fetchCategories = async () => {
@@ -37,7 +37,11 @@ export function useBalanceCategories() {
   }
 
   useEffect(() => {
-    fetchCategories()
+    if (!initialData || initialData.length === 0) {
+      fetchCategories()
+    } else {
+      setLoading(false)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 

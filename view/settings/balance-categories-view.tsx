@@ -89,11 +89,11 @@ export default function BalanceCategoriesView() {
           <div className="space-y-4">
             {balanceCategoriesLoading ? (
               <div className="text-center py-4">
-                <p className="text-gray-500">Cargando categorías...</p>
+                <p className="text-muted-foreground">Cargando categorías...</p>
               </div>
             ) : balanceCategories.length === 0 ? (
               <div className="text-center py-4">
-                <p className="text-gray-500">No hay categorías de balance. Crea una nueva.</p>
+                <p className="text-muted-foreground">No hay categorías de balance. Crea una nueva.</p>
               </div>
             ) : (
               balanceCategories.map((cat) => (

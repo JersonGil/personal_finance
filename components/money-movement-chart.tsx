@@ -1,5 +1,9 @@
+"use client"
+
 import { useMemo } from "react"
+import { useTransactionsStore } from "@/store/transactions-store"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from '@/components/ui/skeleton'
 import { ChartConfig, ChartContainer } from "@/components/ui/chart"
 import {
   LineChart,
@@ -21,18 +25,8 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-interface Transaction {
-  date: string
-  type: "income" | "expense"
-  amount: number
-  category: string
-}
-
-interface MoneyMovementChartProps {
-  transactions: Transaction[]
-}
-
-export default function MoneyMovementChart({ transactions }: MoneyMovementChartProps) {
+export default function MoneyMovementChart() {
+  const transactions = useTransactionsStore(s => s.transactions)
   const chartData = useMemo(() => {
     const last7Days = Array.from({ length: 7 }, (_, i) => {
       // Create date in local timezone to avoid timezone offset issues
@@ -59,22 +53,34 @@ export default function MoneyMovementChart({ transactions }: MoneyMovementChartP
     })
   }, [transactions])
 
+  const isLoading = transactions.length === 0
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Movimiento de Dinero (Últimos 7 días)</CardTitle>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="min-h-[300px] w-full h-full">
-          <LineChart accessibilityLayer data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis />
-            <Tooltip formatter={(value) => [`$${value}`, ""]} />
-            <Line type="monotone" dataKey="ingresos" stroke="var(--color-desktop)" strokeWidth={4} />
-            <Line type="monotone" dataKey="gastos" stroke="var(--color-mobile)" strokeWidth={4} />
-          </LineChart>
-        </ChartContainer>
+        {isLoading ? (
+          <div className="space-y-3">
+            <Skeleton className="h-6 w-40" />
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-3 w-[95%]" />
+            <Skeleton className="h-3 w-[90%]" />
+            <Skeleton className="h-64 w-full" />
+          </div>
+        ) : (
+          <ChartContainer config={chartConfig} className="min-h-[300px] w-full h-full">
+            <LineChart accessibilityLayer data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip formatter={(value) => [`$${value}`, ""]} />
+              <Line type="monotone" dataKey="ingresos" stroke="var(--color-desktop)" strokeWidth={4} />
+              <Line type="monotone" dataKey="gastos" stroke="var(--color-mobile)" strokeWidth={4} />
+            </LineChart>
+          </ChartContainer>
+        )}
       </CardContent>
     </Card>
   )

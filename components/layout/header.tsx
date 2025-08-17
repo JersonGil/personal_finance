@@ -12,13 +12,21 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { LogOut, User, Settings } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
+import { useDollarPrice } from '@/providers/dollar-price-provider'
+import { useEffect } from "react"
 
 export default function Header() {
   const { user, signOut } = useAuth()
+  const { refresh } = useDollarPrice()
 
   const handleSignOut = async () => {
     await signOut()
   }
+
+  useEffect(() => {
+    refresh()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const getInitials = (name: string) => {
     return name
@@ -35,8 +43,8 @@ export default function Header() {
     <header className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Finanzas Personales</h1>
-          <p className="text-sm text-gray-600">Bienvenido, {displayName.split(" ")[0]}</p>
+          <h1 className="text-2xl font-bold text-foreground">Finanzas Personales</h1>
+          <p className="text-sm text-muted-foreground">Bienvenido, {displayName.split(" ")[0]}</p>
         </div>
 
         <DropdownMenu>

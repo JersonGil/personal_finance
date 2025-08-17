@@ -1,6 +1,8 @@
 "use client"
 
 import React, { useState } from "react"
+import type { Database } from "@/types/supabase"
+import type { BalanceCategory } from "@/hooks/use-balance-categories"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Edit, Trash2, Loader2 } from "lucide-react"
@@ -16,11 +18,15 @@ import { useDollarPrice } from "@/providers/dollar-price-provider"
 
 export default function BalanceView({
   dashboardBalance,
+  initialBalances,
+  initialCategories,
 }: Readonly<{
   dashboardBalance?: number
+  initialBalances?: Database["public"]["Tables"]["balances"]["Row"][]
+  initialCategories?: BalanceCategory[]
 }>) {
-  const { categories, loading: loadingCategories } = useBalanceCategories()
-  const { balances, setBalances, loading: loadingBalances, createBalance, refetch, updateBalance } = useBalances()
+  const { categories, loading: loadingCategories } = useBalanceCategories(initialCategories)
+  const { balances, setBalances, loading: loadingBalances, createBalance, refetch, updateBalance } = useBalances(initialBalances)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingBalance, setEditingBalance] = useState<{ categoryId: string; amount: number, balanceId: string } | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<{ id: string; name: string } | null>(null)
@@ -94,7 +100,7 @@ export default function BalanceView({
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Cargando...</p>
+          <p className="text-muted-foreground">Cargando...</p>
         </div>
       </div>
     )
@@ -136,7 +142,7 @@ export default function BalanceView({
                   <span className="font-medium text-2xl">{capitalize(cat.name)}</span>
                   <div className="flex flex-row items-center gap-2 mt-2">
                     <span className="text-2xl font-bold">${amountUsd.toFixed(2)}</span>
-                    <span className="text-xs text-gray-500 mb-1">Bs {formatBs(amountBs)}</span>
+                    <span className="text-xs text-muted-foreground mb-1">Bs {formatBs(amountBs)}</span>
                   </div>
                 </div>
                 <div className="flex flex-row items-center gap-2 self-center">
@@ -167,7 +173,7 @@ export default function BalanceView({
           <div>
             <span className="font-semibold">Balance total actual:</span>{" "}
             <span className="text-lg font-bold">${totalBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
-            <span className="ml-2 text-gray-500">/ Bs {totalBalanceBs.toLocaleString("es-VE", {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+            <span className="ml-2 text-muted-foreground">/ Bs {totalBalanceBs.toLocaleString("es-VE", {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
           </div>
           {dashboardBalance !== undefined && (
             <div>

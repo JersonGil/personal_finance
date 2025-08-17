@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/hooks/use-auth"
 
@@ -15,36 +15,81 @@ export interface Category {
   updated_at: string
 }
 
-export function useCategories() {
+export function useCategories(options?: { staleTime?: number; refetchOnWindowFocus?: boolean }) {
+  const staleTime = options?.staleTime ?? 5 * 60 * 1000 // 5 min por defecto
+  const refetchOnWindowFocus = options?.refetchOnWindowFocus ?? false
+
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const { user } = useAuth()
 
-  const fetchCategories = async () => {
+  // Guards y caché
+  const inFlightRef = useRef<Promise<void> | null>(null)
+  const lastFetchedAtRef = useRef<number>(0)
+  const lastUserIdRef = useRef<string | null>(null)
+
+  const fetchCategories = useCallback(async () => {
     if (!user) return
 
-    try {
-      const { data, error } = await supabase.from("categories").select("*").eq("user_id", user.id).order("name")
+    if (inFlightRef.current) return inFlightRef.current
+    inFlightRef.current = (async () => {
+      try {
+        setLoading(true)
+        const { data, error } = await supabase
+          .from("categories")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("name")
 
-      if (error) throw error
-      setCategories(
-        (data || []).map((cat) => ({
-          ...cat,
-          type: cat.type as "income" | "expense" | "both",
-          color: cat.color ?? "",
-          icon: cat.icon ?? "",
-        }))
-      )
-    } catch (error) {
-      console.error("Error fetching categories:", error)
-    } finally {
+        if (error) throw error
+        setCategories(
+          (data || []).map((cat) => ({
+            ...cat,
+            type: cat.type as "income" | "expense" | "both",
+            color: cat.color ?? "",
+            icon: cat.icon ?? "",
+          })),
+        )
+        lastFetchedAtRef.current = Date.now()
+        lastUserIdRef.current = user.id
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Unknown error"
+        console.error("Error fetching categories:", message)
+      } finally {
+        setLoading(false)
+        inFlightRef.current = null
+      }
+    })()
+    return inFlightRef.current
+  }, [user])
+
+  // Fetch controlado por usuario + staleness
+  useEffect(() => {
+    if (!user) return
+    const userChanged = lastUserIdRef.current !== user.id
+    const isStale = Date.now() - lastFetchedAtRef.current > staleTime
+    if (userChanged || isStale || categories.length === 0) {
+      void fetchCategories()
+    } else {
       setLoading(false)
     }
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id])
 
+  // Opcional: refetch al enfocar ventana (desactivado por defecto)
   useEffect(() => {
-    fetchCategories()
-  }, [user])
+    if (!refetchOnWindowFocus) return
+    const onFocus = () => {
+      const isStale = Date.now() - lastFetchedAtRef.current > staleTime
+      if (isStale) void fetchCategories()
+    }
+    window.addEventListener("focus", onFocus)
+    document.addEventListener("visibilitychange", onFocus)
+    return () => {
+      window.removeEventListener("focus", onFocus)
+      document.removeEventListener("visibilitychange", onFocus)
+    }
+  }, [refetchOnWindowFocus, staleTime, fetchCategories])
 
   const createCategory = async (category: Omit<Category, "id" | "user_id" | "created_at" | "updated_at">) => {
     if (!user) return { error: "No user authenticated" }
@@ -66,8 +111,9 @@ export function useCategories() {
       }
       setCategories((prev) => [...prev, normalizedData])
       return { data: normalizedData, error: null }
-    } catch (error: any) {
-      return { data: null, error: error.message }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unknown error"
+      return { data: null, error: message }
     }
   }
 
@@ -93,8 +139,9 @@ export function useCategories() {
       }
       setCategories((prev) => prev.map((cat) => (cat.id === id ? normalizedData : cat)))
       return { data, error: null }
-    } catch (error: any) {
-      return { data: null, error: error.message }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unknown error"
+      return { data: null, error: message }
     }
   }
 
@@ -108,8 +155,9 @@ export function useCategories() {
 
       setCategories((prev) => prev.filter((cat) => cat.id !== id))
       return { error: null }
-    } catch (error: any) {
-      return { error: error.message }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unknown error"
+      return { error: message }
     }
   }
 
@@ -124,6 +172,6 @@ export function useCategories() {
     deleteCategory,
     getIncomeCategories,
     getExpenseCategories,
-    refetch: fetchCategories,
+    refetch: fetchCategories, // manual y sin depender del foco
   }
 }

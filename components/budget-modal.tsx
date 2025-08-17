@@ -5,20 +5,26 @@ import { useCategories } from "@/hooks/use-categories"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import CurrencyConverter from './currency-converter'
 import type { Budget } from "@/types/finance"
+import { currencies } from "@/lib/utils"
+import { useDollarPrice } from '@/providers/dollar-price-provider'
+import { useBudgets } from '@/hooks/use-budgets'
+import { toast } from 'sonner'
 
 interface BudgetModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onSave: (budget: Omit<Budget, "id">) => void
-  budget?: Budget | null
+  readonly isOpen: boolean
+  readonly onClose: () => void
+  readonly budget?: Budget | null
 }
 
-export default function BudgetModal({ isOpen, onClose, onSave, budget }: BudgetModalProps) {
+export default function BudgetModal({ isOpen, onClose, budget }: Readonly<BudgetModalProps>) {
   const { getExpenseCategories, loading: categoriesLoading } = useCategories()
+  const { createBudget, refetch } = useBudgets()
+  const { price } = useDollarPrice()
+  const [isPending, setIsPending] = useState(false)
   const [category, setCategory] = useState("")
   const [amount, setAmount] = useState("")
   const [month, setMonth] = useState("")
@@ -36,23 +42,35 @@ export default function BudgetModal({ isOpen, onClose, onSave, budget }: BudgetM
     }
   }, [budget, isOpen])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!category || !amount || !month) {
       return
     }
 
-    onSave({
+    setIsPending(true)
+
+    createBudget({
       category,
       amount: Number.parseFloat(amount),
       month,
     })
-
-    // Reset form
-    setCategory("")
-    setAmount("")
-    setMonth("")
+      .then(async () => {
+        toast.success("Presupuesto creado exitosamente")
+        await refetch()
+        setCategory("")
+        setAmount("")
+        setMonth("")
+        onClose()
+      })
+      .catch((error) => {
+        toast.error("Error al crear presupuesto")
+        console.error(error)
+      })
+      .finally(() => {
+        setIsPending(false)
+      })
   }
 
   // Generate month options (current month and next 11 months)
@@ -74,7 +92,7 @@ export default function BudgetModal({ isOpen, onClose, onSave, budget }: BudgetM
           <div className="space-y-2">
             <Label htmlFor="category">Categoría</Label>
             <Select value={category} onValueChange={setCategory} required disabled={categoriesLoading}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Selecciona una categoría" />
               </SelectTrigger>
               <SelectContent>
@@ -89,21 +107,19 @@ export default function BudgetModal({ isOpen, onClose, onSave, budget }: BudgetM
 
           <div className="space-y-2">
             <Label htmlFor="amount">Monto Presupuestado</Label>
-            <Input
-              id="amount"
-              type="number"
-              step="0.01"
-              placeholder="0.00"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              required
+            <CurrencyConverter
+              className="mt-0"
+              primaryCurrency={currencies.BS}
+              secondaryCurrency={currencies.USD}
+              price={price ?? 0}
+              onChangeAmount={(primary, secondary) => { setAmount(secondary) }}
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="month">Mes</Label>
             <Select value={month} onValueChange={setMonth} required>
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Selecciona un mes" />
               </SelectTrigger>
               <SelectContent>
@@ -120,7 +136,7 @@ export default function BudgetModal({ isOpen, onClose, onSave, budget }: BudgetM
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
-            <Button type="submit">{budget ? "Actualizar" : "Guardar"}</Button>
+            <Button disabled={isPending} type="submit">{budget ? "Actualizar" : "Guardar"}</Button>
           </div>
         </form>
       </DialogContent>
