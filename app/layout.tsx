@@ -11,6 +11,7 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar"
 import { Sidebar } from "@/components/layout/app-sidebar"
+import { cn } from '@/lib/utils'
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -50,8 +51,11 @@ export default async function RootLayout({
             <AuthProvider initialUser={initialUser} initialSession={initialSession}>
               <div className="bg-background min-h-screen">
                 <SidebarProvider>
-                  <Sidebar />
-                  <main className="p-4 max-w-7xl mx-auto w-full space-y-6 lg:ml-64">
+                  {initialUser && <Sidebar />}
+                  <main className={cn(
+                    "p-4 max-w-7xl m-auto w-full space-y-6",
+                    initialUser
+                  )}>
                     {children}
                   </main>
                 </SidebarProvider>

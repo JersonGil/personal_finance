@@ -8,13 +8,14 @@ export default async function RootLayout({
 }>) {
   const supabase = await createClient()
 
-  const { data, error } = await supabase.auth.getUser()
-  if (error || data?.user) {
+  const { data } = await supabase.auth.getUser()
+  // Solo redirige si el usuario YA está autenticado
+  if (data?.user) {
     redirect('/')
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {children}
       </div>
