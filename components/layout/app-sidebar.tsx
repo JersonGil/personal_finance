@@ -88,6 +88,14 @@ export function Sidebar() {
 
   const handleSignOut = async () => {
     await signOut()
+    setIsMobileMenuOpen(false)
+    // Redirigir manualmente tras logout para evitar depender sólo del middleware
+    try {
+      window.location.replace('/login')
+    } catch {
+      // fallback
+      window.location.href = '/login'
+    }
   }
 
   return (
@@ -101,7 +109,12 @@ export function Sidebar() {
 
       {/* Mobile overlay */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 bg-black/50 z-40" onClick={() => setIsMobileMenuOpen(false)} />
+        <button
+          type="button"
+          aria-label="Cerrar menú"
+          className="lg:hidden fixed inset-0 bg-black/50 z-40 cursor-default"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
       )}
 
       {/* Sidebar */}
