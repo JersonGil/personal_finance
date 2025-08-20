@@ -1,16 +1,16 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { TrendingUp, TrendingDown, DollarSign } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 
 interface FinancialSummaryCardsProps {
-  totalIncome: number
-  totalExpenses: number
-  balance: number
+  totalIncome: number;
+  totalExpenses: number;
+  balance: number;
 }
 
-export default function FinancialSummaryCards({ 
-  totalIncome, 
-  totalExpenses, 
-  balance 
+export default function FinancialSummaryCards({
+  totalIncome,
+  totalExpenses,
+  balance,
 }: FinancialSummaryCardsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -40,11 +40,11 @@ export default function FinancialSummaryCards({
           <DollarSign className="h-4 w-4 text-blue-600" />
         </CardHeader>
         <CardContent>
-          <div className={`text-2xl font-bold ${balance >= 0 ? "text-green-600" : "text-red-600"}`}>
+          <div className={`text-2xl font-bold ${balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             ${balance.toLocaleString()}
           </div>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

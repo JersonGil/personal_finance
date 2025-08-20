@@ -1,20 +1,26 @@
-"use client"
+'use client';
 
-import { useState, useMemo, useEffect } from 'react'
-import type { Transaction } from '@/types/finance'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
+import { useState, useMemo, useEffect } from 'react';
+import type { Transaction } from '@/types/finance';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 interface TransactionsTableProps {
-  transactions: Transaction[]
-  loading: boolean
-  error: string | null
-  initialPageSize?: number
-  className?: string
+  transactions: Transaction[];
+  loading: boolean;
+  error: string | null;
+  initialPageSize?: number;
+  className?: string;
 }
 
 /**
@@ -22,30 +28,47 @@ interface TransactionsTableProps {
  * - Handles pagination, desktop table, mobile card list, and page size selection.
  * - Parent supplies already-filtered transactions plus loading/error flags.
  */
-export function TransactionsTable({ transactions, loading, error, initialPageSize = 10, className }: Readonly<TransactionsTableProps>) {
-  const [page, setPage] = useState(0)
-  const [pageSize, setPageSize] = useState(initialPageSize)
+export function TransactionsTable({
+  transactions,
+  loading,
+  error,
+  initialPageSize = 10,
+  className,
+}: Readonly<TransactionsTableProps>) {
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(initialPageSize);
 
   // Reset page when data length shrinks below current window or pageSize changes
-  useEffect(() => { setPage(0) }, [pageSize])
-  useEffect(() => { if (page * pageSize >= transactions.length) setPage(0) }, [transactions.length, page, pageSize])
+  useEffect(() => {
+    setPage(0);
+  }, [pageSize]);
+  useEffect(() => {
+    if (page * pageSize >= transactions.length) setPage(0);
+  }, [transactions.length, page, pageSize]);
 
-  const totalPages = useMemo(() => Math.max(1, Math.ceil(transactions.length / pageSize)), [transactions.length, pageSize])
-  const currentPage = Math.min(page, totalPages - 1)
-  const pageStart = currentPage * pageSize
-  const pageEnd = Math.min(pageStart + pageSize, transactions.length)
-  const paginated = transactions.slice(pageStart, pageEnd)
+  const totalPages = useMemo(
+    () => Math.max(1, Math.ceil(transactions.length / pageSize)),
+    [transactions.length, pageSize],
+  );
+  const currentPage = Math.min(page, totalPages - 1);
+  const pageStart = currentPage * pageSize;
+  const pageEnd = Math.min(pageStart + pageSize, transactions.length);
+  const paginated = transactions.slice(pageStart, pageEnd);
 
   return (
     <div className={className}>
       {loading && (
-        <div className="text-center py-8 text-muted-foreground text-sm">Cargando transacciones...</div>
+        <div className="text-center py-8 text-muted-foreground text-sm">
+          Cargando transacciones...
+        </div>
       )}
       {!loading && error && (
         <div className="text-center py-8 text-red-600 text-sm">Error: {error}</div>
       )}
       {!loading && !error && transactions.length === 0 && (
-        <div className="text-center py-8 text-muted-foreground">No se encontraron transacciones con los filtros aplicados</div>
+        <div className="text-center py-8 text-muted-foreground">
+          No se encontraron transacciones con los filtros aplicados
+        </div>
       )}
       {!loading && !error && transactions.length > 0 && (
         <div className="space-y-4">
@@ -64,7 +87,9 @@ export function TransactionsTable({ transactions, loading, error, initialPageSiz
                 <tbody>
                   {paginated.map((transaction) => (
                     <tr key={transaction.id} className="border-b hover:bg-muted/50">
-                      <td className="p-2">{format(new Date(transaction.date), 'dd/MM/yyyy', { locale: es })}</td>
+                      <td className="p-2">
+                        {format(new Date(transaction.date), 'dd/MM/yyyy', { locale: es })}
+                      </td>
                       <td className="p-2">{transaction.description}</td>
                       <td className="p-2">{transaction.category}</td>
                       <td className="p-2">
@@ -75,7 +100,8 @@ export function TransactionsTable({ transactions, loading, error, initialPageSiz
                       <td
                         className={`p-2 text-right font-medium ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}`}
                       >
-                        {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toLocaleString()}
+                        {transaction.type === 'income' ? '+' : '-'}$
+                        {transaction.amount.toLocaleString()}
                       </td>
                     </tr>
                   ))}
@@ -95,8 +121,11 @@ export function TransactionsTable({ transactions, loading, error, initialPageSiz
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className={`font-bold ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                        {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toLocaleString()}
+                      <p
+                        className={`font-bold ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}`}
+                      >
+                        {transaction.type === 'income' ? '+' : '-'}$
+                        {transaction.amount.toLocaleString()}
                       </p>
                     </div>
                   </div>
@@ -113,10 +142,16 @@ export function TransactionsTable({ transactions, loading, error, initialPageSiz
           {/* Pagination controls */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 border-t mt-2">
             <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
-              <span>Mostrando {pageStart + 1}-{pageEnd} de {transactions.length}</span>
-              <span>Página {currentPage + 1} de {totalPages}</span>
+              <span>
+                Mostrando {pageStart + 1}-{pageEnd} de {transactions.length}
+              </span>
+              <span>
+                Página {currentPage + 1} de {totalPages}
+              </span>
               <div className="flex items-center gap-1">
-                <label htmlFor="page-size" className="text-xs font-medium">Tamaño página:</label>
+                <label htmlFor="page-size" className="text-xs font-medium">
+                  Tamaño página:
+                </label>
                 <Select value={String(pageSize)} onValueChange={(v) => setPageSize(Number(v))}>
                   <SelectTrigger id="page-size" className="h-7 w-[90px] text-xs">
                     <SelectValue />
@@ -135,18 +170,22 @@ export function TransactionsTable({ transactions, loading, error, initialPageSiz
                 variant="outline"
                 size="sm"
                 disabled={currentPage === 0}
-                onClick={() => setPage(p => Math.max(0, p - 1))}
-              >Anterior</Button>
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+              >
+                Anterior
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
                 disabled={currentPage >= totalPages - 1}
-                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-              >Siguiente</Button>
+                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              >
+                Siguiente
+              </Button>
             </div>
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }

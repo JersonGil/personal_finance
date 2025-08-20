@@ -1,7 +1,7 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Home, ArrowLeft, Calculator, TrendingUp } from "lucide-react"
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Home, ArrowLeft, Calculator, TrendingUp } from 'lucide-react';
 
 export default function NotFound() {
   return (
@@ -14,7 +14,9 @@ export default function NotFound() {
             </div>
             <h1 className="text-6xl font-bold text-primary mb-2">404</h1>
             <h2 className="text-xl font-semibold mb-2">Página no encontrada</h2>
-            <p className="text-muted-foreground mb-6">Lo sentimos, la página que buscas no existe o ha sido movida.</p>
+            <p className="text-muted-foreground mb-6">
+              Lo sentimos, la página que buscas no existe o ha sido movida.
+            </p>
           </div>
 
           <div className="space-y-3">
@@ -44,11 +46,11 @@ export default function NotFound() {
 
           <div className="mt-6 pt-4 border-t">
             <p className="text-sm text-muted-foreground">
-              ¿Necesitas ayuda? Revisa tu{" "}
+              ¿Necesitas ayuda? Revisa tu{' '}
               <Link href="/budget" className="text-primary hover:underline">
                 presupuesto
-              </Link>{" "}
-              o{" "}
+              </Link>{' '}
+              o{' '}
               <Link href="/planning" className="text-primary hover:underline">
                 planificación
               </Link>
@@ -57,5 +59,5 @@ export default function NotFound() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

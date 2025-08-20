@@ -1,43 +1,43 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from 'react';
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, ArrowLeft, CheckCircle } from "lucide-react"
-import { useAuth } from "@/hooks/use-auth"
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2, ArrowLeft, CheckCircle } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
 
 interface ForgotPasswordFormProps {
-  onBack: () => void
+  onBack: () => void;
 }
 
 export default function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
-  const [email, setEmail] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState(false)
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
-  const { resetPassword } = useAuth()
+  const { resetPassword } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
-    const { error } = await resetPassword(email)
+    const { error } = await resetPassword(email);
 
     if (error) {
-      setError(error.message)
+      setError(error.message);
     } else {
-      setSuccess(true)
+      setSuccess(true);
     }
 
-    setLoading(false)
-  }
+    setLoading(false);
+  };
 
   if (success) {
     return (
@@ -48,8 +48,8 @@ export default function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) 
           </div>
           <CardTitle className="text-2xl font-bold text-center">Correo Enviado</CardTitle>
           <CardDescription className="text-center">
-            Hemos enviado un enlace para restablecer tu contraseña a {email}. Revisa tu bandeja de entrada y sigue las
-            instrucciones.
+            Hemos enviado un enlace para restablecer tu contraseña a {email}. Revisa tu bandeja de
+            entrada y sigue las instrucciones.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -59,7 +59,7 @@ export default function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) 
           </Button>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -96,12 +96,18 @@ export default function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) 
             Enviar Enlace
           </Button>
 
-          <Button type="button" variant="outline" className="w-full bg-transparent" onClick={onBack} disabled={loading}>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full bg-transparent"
+            onClick={onBack}
+            disabled={loading}
+          >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Volver al Login
           </Button>
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }

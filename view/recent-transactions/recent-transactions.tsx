@@ -1,66 +1,74 @@
-"use client"
+'use client';
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Plus } from "lucide-react"
-import type { Transaction } from "@/types/finance"
-import TransactionModal from "@/components/transaction-modal"
-import React, { useState } from "react"
-import { toast } from "sonner"
-import NoTransactions from "@/components/no-transactions"
-import TransactionCard from "./components/transaction-card"
-import { createTransaction } from "@/service/transactions"
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Plus } from 'lucide-react';
+import type { Transaction } from '@/types/finance';
+import TransactionModal from '@/components/transaction-modal';
+import React, { useState } from 'react';
+import { toast } from 'sonner';
+import NoTransactions from '@/components/no-transactions';
+import TransactionCard from './components/transaction-card';
+import { createTransaction } from '@/service/transactions';
 
-import { useTransactionsStore } from "@/store/transactions-store"
+import { useTransactionsStore } from '@/store/transactions-store';
 
 const RecentTransactions: React.FC = () => {
-  const transactions = useTransactionsStore(s => s.transactions)
-  const addTransaction = useTransactionsStore(s => s.addTransaction)
-  const replaceTemp = useTransactionsStore(s => s.replaceTemp)
-  const removeTransaction = useTransactionsStore(s => s.removeTransaction)
-  const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false)
-  const PAGE_SIZE = 5
-  const [incomePage, setIncomePage] = useState(0)
-  const [expensePage, setExpensePage] = useState(0)
+  const transactions = useTransactionsStore((s) => s.transactions);
+  const addTransaction = useTransactionsStore((s) => s.addTransaction);
+  const replaceTemp = useTransactionsStore((s) => s.replaceTemp);
+  const removeTransaction = useTransactionsStore((s) => s.removeTransaction);
+  const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
+  const PAGE_SIZE = 5;
+  const [incomePage, setIncomePage] = useState(0);
+  const [expensePage, setExpensePage] = useState(0);
 
-  const handleSaveTransaction = async (transaction: Pick<Transaction, "type" | "amount" | "category" | "description" | "date">) => {
+  const handleSaveTransaction = async (
+    transaction: Pick<Transaction, 'type' | 'amount' | 'category' | 'description' | 'date'>,
+  ) => {
     // Optimistic placeholder id
-    const tempId = `temp-${Date.now()}`
+    const tempId = `temp-${Date.now()}`;
     const optimistic: Transaction = {
       id: tempId,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      user_id: "optimistic",
+      user_id: 'optimistic',
       ...transaction,
-    }
-    addTransaction(optimistic)
-  const { error, data } = await createTransaction(transaction)
+    };
+    addTransaction(optimistic);
+    const { error, data } = await createTransaction(transaction);
     if (error) {
-      toast.error("Hubo un error al guardar la transacción.")
-      console.error("Error saving transaction:", error)
+      toast.error('Hubo un error al guardar la transacción.');
+      console.error('Error saving transaction:', error);
       // Rollback optimistic placeholder
-      removeTransaction(tempId)
+      removeTransaction(tempId);
     } else {
-      setIsTransactionModalOpen(false)
-      toast.success("Transacción guardada correctamente.")
+      setIsTransactionModalOpen(false);
+      toast.success('Transacción guardada correctamente.');
       if (data) {
         // Replace temp with actual row to avoid double counting
-        replaceTemp(tempId, data as unknown as Transaction)
+        replaceTemp(tempId, data as unknown as Transaction);
       }
     }
-  }
+  };
 
   // Filtrar ingresos y egresos desde props
-  const incomeTransactionsAll = (transactions ?? []).filter((t) => t.type === "income")
-  const expenseTransactionsAll = (transactions ?? []).filter((t) => t.type === "expense")
-  const totalIncomePages = Math.max(1, Math.ceil(incomeTransactionsAll.length / PAGE_SIZE))
-  const totalExpensePages = Math.max(1, Math.ceil(expenseTransactionsAll.length / PAGE_SIZE))
-  const clampedIncomePage = Math.min(incomePage, totalIncomePages - 1)
-  const clampedExpensePage = Math.min(expensePage, totalExpensePages - 1)
-  const incomeSliceStart = clampedIncomePage * PAGE_SIZE
-  const expenseSliceStart = clampedExpensePage * PAGE_SIZE
-  const incomeTransactions = incomeTransactionsAll.slice(incomeSliceStart, incomeSliceStart + PAGE_SIZE)
-  const expenseTransactions = expenseTransactionsAll.slice(expenseSliceStart, expenseSliceStart + PAGE_SIZE)
+  const incomeTransactionsAll = (transactions ?? []).filter((t) => t.type === 'income');
+  const expenseTransactionsAll = (transactions ?? []).filter((t) => t.type === 'expense');
+  const totalIncomePages = Math.max(1, Math.ceil(incomeTransactionsAll.length / PAGE_SIZE));
+  const totalExpensePages = Math.max(1, Math.ceil(expenseTransactionsAll.length / PAGE_SIZE));
+  const clampedIncomePage = Math.min(incomePage, totalIncomePages - 1);
+  const clampedExpensePage = Math.min(expensePage, totalExpensePages - 1);
+  const incomeSliceStart = clampedIncomePage * PAGE_SIZE;
+  const expenseSliceStart = clampedExpensePage * PAGE_SIZE;
+  const incomeTransactions = incomeTransactionsAll.slice(
+    incomeSliceStart,
+    incomeSliceStart + PAGE_SIZE,
+  );
+  const expenseTransactions = expenseTransactionsAll.slice(
+    expenseSliceStart,
+    expenseSliceStart + PAGE_SIZE,
+  );
 
   return (
     <>
@@ -105,8 +113,10 @@ const RecentTransactions: React.FC = () => {
                     variant="outline"
                     size="sm"
                     disabled={clampedIncomePage === 0}
-                    onClick={() => setIncomePage(p => Math.max(0, p - 1))}
-                  >Anterior</Button>
+                    onClick={() => setIncomePage((p) => Math.max(0, p - 1))}
+                  >
+                    Anterior
+                  </Button>
                   <span className="text-xs text-muted-foreground">
                     Página {clampedIncomePage + 1} de {totalIncomePages}
                   </span>
@@ -114,8 +124,10 @@ const RecentTransactions: React.FC = () => {
                     variant="outline"
                     size="sm"
                     disabled={clampedIncomePage >= totalIncomePages - 1}
-                    onClick={() => setIncomePage(p => Math.min(totalIncomePages - 1, p + 1))}
-                  >Siguiente</Button>
+                    onClick={() => setIncomePage((p) => Math.min(totalIncomePages - 1, p + 1))}
+                  >
+                    Siguiente
+                  </Button>
                 </div>
               )}
             </div>
@@ -148,8 +160,10 @@ const RecentTransactions: React.FC = () => {
                     variant="outline"
                     size="sm"
                     disabled={clampedExpensePage === 0}
-                    onClick={() => setExpensePage(p => Math.max(0, p - 1))}
-                  >Anterior</Button>
+                    onClick={() => setExpensePage((p) => Math.max(0, p - 1))}
+                  >
+                    Anterior
+                  </Button>
                   <span className="text-xs text-muted-foreground">
                     Página {clampedExpensePage + 1} de {totalExpensePages}
                   </span>
@@ -157,8 +171,10 @@ const RecentTransactions: React.FC = () => {
                     variant="outline"
                     size="sm"
                     disabled={clampedExpensePage >= totalExpensePages - 1}
-                    onClick={() => setExpensePage(p => Math.min(totalExpensePages - 1, p + 1))}
-                  >Siguiente</Button>
+                    onClick={() => setExpensePage((p) => Math.min(totalExpensePages - 1, p + 1))}
+                  >
+                    Siguiente
+                  </Button>
                 </div>
               )}
             </div>
@@ -171,7 +187,7 @@ const RecentTransactions: React.FC = () => {
         onSave={handleSaveTransaction}
       />
     </>
-  )
-}
+  );
+};
 
-export default RecentTransactions
+export default RecentTransactions;

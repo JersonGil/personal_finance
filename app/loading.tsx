@@ -1,4 +1,4 @@
-import { Skeleton } from '@/components/ui/skeleton'
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function RootLoading() {
   return (
@@ -14,16 +14,16 @@ export default function RootLoading() {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-4">
-          {["inc-1","inc-2","inc-3","inc-4","inc-5"].map(id => (
+          {['inc-1', 'inc-2', 'inc-3', 'inc-4', 'inc-5'].map((id) => (
             <Skeleton key={id} className="h-16" />
           ))}
         </div>
         <div className="space-y-4">
-          {["exp-1","exp-2","exp-3","exp-4","exp-5"].map(id => (
+          {['exp-1', 'exp-2', 'exp-3', 'exp-4', 'exp-5'].map((id) => (
             <Skeleton key={id} className="h-16" />
           ))}
         </div>
       </div>
     </div>
-  )
+  );
 }

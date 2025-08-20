@@ -1,42 +1,42 @@
-import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-import "./globals.css"
-import { Toaster } from "@/components/ui/sonner"
-import { DollarPriceProvider } from "@/providers/dollar-price-provider"
-import { createClient } from "@/lib/server"
-import { AuthProvider } from "@/components/auth/auth-provider"
-import { ThemeProvider } from '@/components/theme-provider'
-import { GlobalLoader } from '@/components/global-loader'
-import {
-  SidebarProvider,
-} from "@/components/ui/sidebar"
-import { Sidebar } from "@/components/layout/app-sidebar"
-import { cn } from '@/lib/utils'
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import { Toaster } from '@/components/ui/sonner';
+import { DollarPriceProvider } from '@/providers/dollar-price-provider';
+import { createClient } from '@/lib/server';
+import { AuthProvider } from '@/components/auth/auth-provider';
+import { ThemeProvider } from '@/components/theme-provider';
+import { GlobalLoader } from '@/components/global-loader';
+import { SidebarProvider } from '@/components/ui/sidebar';
+import { Sidebar } from '@/components/layout/app-sidebar';
+import { cn } from '@/lib/utils';
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "Finanzas Personales",
-  description: "Gestiona tus finanzas personales",
-}
+  title: 'Finanzas Personales',
+  description: 'Gestiona tus finanzas personales',
+};
 
 export default async function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
-  let initialUser = null
-  let initialSession = null
+  let initialUser = null;
+  let initialSession = null;
 
   try {
-    const sb = await createClient()
+    const sb = await createClient();
     // Fetch authenticated user with a round-trip (more secure than relying solely on cached session)
-    const { data: { user } } = await sb.auth.getUser()
-    initialUser = user ?? null
+    const {
+      data: { user },
+    } = await sb.auth.getUser();
+    initialUser = user ?? null;
     // Optionally still obtain session (tokens, expiry) after establishing authentic user
     if (user) {
-      const { data: sessionData } = await sb.auth.getSession()
-      initialSession = sessionData.session
+      const { data: sessionData } = await sb.auth.getSession();
+      initialSession = sessionData.session;
     }
   } catch {
     // ignore
@@ -52,10 +52,7 @@ export default async function RootLayout({
               <div className="bg-background min-h-screen">
                 <SidebarProvider>
                   {initialUser && <Sidebar />}
-                  <main className={cn(
-                    "p-4 max-w-7xl m-auto w-full space-y-6",
-                    initialUser
-                  )}>
+                  <main className={cn('p-4 max-w-7xl m-auto w-full space-y-6', initialUser)}>
                     {children}
                   </main>
                 </SidebarProvider>
@@ -63,8 +60,8 @@ export default async function RootLayout({
             </AuthProvider>
           </DollarPriceProvider>
           <Toaster />
-        </ThemeProvider> 
+        </ThemeProvider>
       </body>
     </html>
-  )
+  );
 }

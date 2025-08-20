@@ -1,58 +1,70 @@
-"use client"
+'use client';
 
-import { useState, useMemo, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { FilterIcon, XIcon, PlusIcon } from "lucide-react"
-import TransactionModal from "@/components/transaction-modal"
-import { useAllTransactions } from '@/hooks/use-all-transactions'
-import { TransactionsTable } from '@/components/transactions/transactions-table'
-import type { Transaction } from '@/types/finance'
+import { useState, useMemo, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { FilterIcon, XIcon, PlusIcon } from 'lucide-react';
+import TransactionModal from '@/components/transaction-modal';
+import { useAllTransactions } from '@/hooks/use-all-transactions';
+import { TransactionsTable } from '@/components/transactions/transactions-table';
+import type { Transaction } from '@/types/finance';
 
 interface TransactionsPageProps {
-  initialTransactions?: Transaction[]
+  initialTransactions?: Transaction[];
 }
 
 export default function TransactionsPage({ initialTransactions }: Readonly<TransactionsPageProps>) {
-  const { transactions, loading, createTransaction, error, setInitial } = useAllTransactions({ realtime: true })
+  const { transactions, loading, createTransaction, error, setInitial } = useAllTransactions({
+    realtime: true,
+  });
   // Hydrate once if initial provided and store empty
   useEffect(() => {
     if (initialTransactions?.length && transactions.length === 0) {
-      setInitial(initialTransactions)
+      setInitial(initialTransactions);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialTransactions])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialTransactions]);
 
-  const [dateFrom, setDateFrom] = useState("")
-  const [dateTo, setDateTo] = useState("")
-  const [typeFilter, setTypeFilter] = useState<"all" | "income" | "expense">("all")
-  const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false)
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>('all');
+  const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   // Pagination state removed (handled inside TransactionsTable)
 
   const filteredTransactions = useMemo(() => {
     const list = transactions
       .filter((transaction) => {
-        if (dateFrom && new Date(transaction.date) < new Date(dateFrom)) return false
-        if (dateTo && new Date(transaction.date) > new Date(dateTo)) return false
-        if (typeFilter !== "all" && transaction.type !== typeFilter) return false
-        return true
+        if (dateFrom && new Date(transaction.date) < new Date(dateFrom)) return false;
+        if (dateTo && new Date(transaction.date) > new Date(dateTo)) return false;
+        if (typeFilter !== 'all' && transaction.type !== typeFilter) return false;
+        return true;
       })
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    return list
-  }, [transactions, dateFrom, dateTo, typeFilter])
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return list;
+  }, [transactions, dateFrom, dateTo, typeFilter]);
 
   // Pagination related effects removed
 
   const clearFilters = () => {
-    setDateFrom("")
-    setDateTo("")
-    setTypeFilter("all")
-  }
+    setDateFrom('');
+    setDateTo('');
+    setTypeFilter('all');
+  };
 
-  const totalIncome = filteredTransactions.filter((t) => t.type === "income").reduce((sum, t) => sum + (isNaN(t.amount) ? 0 : t.amount), 0)
-  const totalExpense = filteredTransactions.filter((t) => t.type === "expense").reduce((sum, t) => sum + (isNaN(t.amount) ? 0 : t.amount), 0)
+  const totalIncome = filteredTransactions
+    .filter((t) => t.type === 'income')
+    .reduce((sum, t) => sum + (isNaN(t.amount) ? 0 : t.amount), 0);
+  const totalExpense = filteredTransactions
+    .filter((t) => t.type === 'expense')
+    .reduce((sum, t) => sum + (isNaN(t.amount) ? 0 : t.amount), 0);
 
   return (
     <div className="space-y-6">
@@ -74,16 +86,35 @@ export default function TransactionsPage({ initialTransactions }: Readonly<Trans
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="space-y-2">
-              <label htmlFor="date-from" className="text-sm font-medium">Fecha desde</label>
-              <Input id="date-from" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+              <label htmlFor="date-from" className="text-sm font-medium">
+                Fecha desde
+              </label>
+              <Input
+                id="date-from"
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+              />
             </div>
             <div className="space-y-2">
-              <label htmlFor="date-to" className="text-sm font-medium">Fecha hasta</label>
-              <Input id="date-to" type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+              <label htmlFor="date-to" className="text-sm font-medium">
+                Fecha hasta
+              </label>
+              <Input
+                id="date-to"
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+              />
             </div>
             <div className="space-y-2">
-              <label htmlFor="type-filter" className="text-sm font-medium">Tipo</label>
-              <Select value={typeFilter} onValueChange={(value: "all" | "income" | "expense") => setTypeFilter(value)}>
+              <label htmlFor="type-filter" className="text-sm font-medium">
+                Tipo
+              </label>
+              <Select
+                value={typeFilter}
+                onValueChange={(value: 'all' | 'income' | 'expense') => setTypeFilter(value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona" />
                 </SelectTrigger>
@@ -149,10 +180,10 @@ export default function TransactionsPage({ initialTransactions }: Readonly<Trans
         isOpen={isTransactionModalOpen}
         onClose={() => setIsTransactionModalOpen(false)}
         onSave={async (tx) => {
-          await createTransaction(tx)
-          setIsTransactionModalOpen(false)
+          await createTransaction(tx);
+          setIsTransactionModalOpen(false);
         }}
       />
     </div>
-  )
+  );
 }
