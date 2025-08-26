@@ -11,6 +11,7 @@ export default async function DashboardView() {
   const sb = await createClient();
   let transactions: Transaction[] = [];
   let userId: string | null = null;
+
   try {
     const {
       data: { user },
@@ -31,9 +32,11 @@ export default async function DashboardView() {
   const totalIncome = transactions
     .filter((t) => t.type === 'income')
     .reduce((sum, t) => sum + (isNaN(t.amount) ? 0 : t.amount), 0);
+
   const totalExpenses = transactions
     .filter((t) => t.type === 'expense')
     .reduce((sum, t) => sum + (isNaN(t.amount) ? 0 : t.amount), 0);
+
   const balance = totalIncome - totalExpenses;
 
   return (

@@ -26,7 +26,12 @@ export const useTransactionsStore = create<TransactionsState>((set, get) => ({
     get().recompute();
   },
   addTransaction: (tx: Transaction) => {
-    set((state) => ({ ...state, transactions: [tx, ...state.transactions] }));
+    set((state) => {
+      // Avoid duplicates (e.g., optimistic insert replaced, then realtime arrives)
+      const exists = state.transactions.some((t) => t.id === tx.id);
+      if (exists) return state;
+      return { ...state, transactions: [tx, ...state.transactions] };
+    });
     get().recompute();
   },
   updateTransaction: (id: string, partial: Partial<Transaction>) => {

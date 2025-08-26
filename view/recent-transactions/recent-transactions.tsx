@@ -12,8 +12,10 @@ import TransactionCard from './components/transaction-card';
 import { createTransaction } from '@/service/transactions';
 
 import { useTransactionsStore } from '@/store/transactions-store';
+import { useRouter } from 'next/navigation';
 
 const RecentTransactions: React.FC = () => {
+  const router = useRouter();
   const transactions = useTransactionsStore((s) => s.transactions);
   const addTransaction = useTransactionsStore((s) => s.addTransaction);
   const replaceTemp = useTransactionsStore((s) => s.replaceTemp);
@@ -49,6 +51,8 @@ const RecentTransactions: React.FC = () => {
         // Replace temp with actual row to avoid double counting
         replaceTemp(tempId, data as unknown as Transaction);
       }
+  // Refetch server-rendered data (totals, charts, server lists)
+  router.refresh();
     }
   };
 
