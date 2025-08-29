@@ -61,6 +61,7 @@ export function PlanningView({
     amount: '',
     category: '',
     type: 'expense' as 'income' | 'expense',
+    month: ''
   });
 
   // Métricas se calculan ahora dentro de cada card para reducir acoplamiento aquí.
@@ -89,7 +90,7 @@ export function PlanningView({
 
     setIsModalOpen(false);
     setEditingPlanned(null);
-    setFormData({ description: '', amount: '', category: '', type: 'expense' });
+    setFormData({ description: '', amount: '', category: '', type: 'expense', month: '' });
   };
 
   const handleEditPlanned = (plannedItem: PlannedRow) => {
@@ -99,6 +100,7 @@ export function PlanningView({
       amount: plannedItem.amount.toString(),
       category: plannedItem.category,
       type: plannedItem.type,
+      month: plannedItem.month,
     });
     setIsModalOpen(true);
   };
@@ -175,7 +177,7 @@ export function PlanningView({
               <Button
                 onClick={() => {
                   setEditingPlanned(null);
-                  setFormData({ description: '', amount: '', category: '', type: 'expense' });
+                  setFormData({ description: '', amount: '', category: '', type: 'expense', month: '' });
                 }}
               >
                 <Plus className="h-4 w-4 mr-2" />

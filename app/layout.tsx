@@ -11,7 +11,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { Sidebar } from '@/components/layout/app-sidebar';
 import { cn } from '@/lib/utils';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ['latin'], display: 'swap' })
 
 export const metadata: Metadata = {
   title: 'Finanzas Personales',
