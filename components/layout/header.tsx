@@ -1,7 +1,7 @@
-"use client"
+'use client';
 
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,50 +9,55 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { LogOut, User, Settings } from "lucide-react"
-import { useAuth } from "@/hooks/use-auth"
-import { useDollarPrice } from '@/providers/dollar-price-provider'
-import { useEffect } from "react"
+} from '@/components/ui/dropdown-menu';
+import { LogOut, User, Settings } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
+import { useDollarPrice } from '@/providers/dollar-price-provider';
+import { useEffect } from 'react';
 
 export default function Header() {
-  const { user, signOut } = useAuth()
-  const { refresh } = useDollarPrice()
+  const { user, signOut } = useAuth();
+  const { refresh } = useDollarPrice();
 
   const handleSignOut = async () => {
-    await signOut()
-  }
+    await signOut();
+  };
 
   useEffect(() => {
-    refresh()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const getInitials = (name: string) => {
     return name
-      .split(" ")
+      .split(' ')
       .map((n) => n[0])
-      .join("")
+      .join('')
       .toUpperCase()
-      .slice(0, 2)
-  }
+      .slice(0, 2);
+  };
 
-  const displayName = user?.user_metadata?.full_name || user?.email || "Usuario"
+  const displayName = user?.user_metadata?.full_name || user?.email || 'Usuario';
 
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Finanzas Personales</h1>
-          <p className="text-sm text-muted-foreground">Bienvenido, {displayName.split(" ")[0]}</p>
+          <p className="text-sm text-muted-foreground">Bienvenido, {displayName.split(' ')[0]}</p>
         </div>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-10 w-10 rounded-full">
               <Avatar className="h-10 w-10">
-                <AvatarImage src={user?.user_metadata?.avatar_url || "/placeholder.svg"} alt={displayName} />
-                <AvatarFallback className="bg-blue-500 text-white">{getInitials(displayName)}</AvatarFallback>
+                <AvatarImage
+                  src={user?.user_metadata?.avatar_url || '/placeholder.svg'}
+                  alt={displayName}
+                />
+                <AvatarFallback className="bg-blue-500 text-white">
+                  {getInitials(displayName)}
+                </AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
@@ -81,5 +86,5 @@ export default function Header() {
         </DropdownMenu>
       </div>
     </header>
-  )
+  );
 }

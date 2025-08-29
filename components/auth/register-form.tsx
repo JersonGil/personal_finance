@@ -1,66 +1,66 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from 'react';
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, Eye, EyeOff, CheckCircle } from "lucide-react"
-import { useAuth } from "@/hooks/use-auth"
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
 
 interface RegisterFormProps {
-  onToggleMode: () => void
+  onToggleMode: () => void;
 }
 
 export default function RegisterForm({ onToggleMode }: RegisterFormProps) {
-  const [fullName, setFullName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState(false)
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
-  const { signUp } = useAuth()
+  const { signUp } = useAuth();
 
   const validatePassword = (password: string) => {
-    return password.length >= 6
-  }
+    return password.length >= 6;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
-    setSuccess(false)
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess(false);
 
     // Validaciones
     if (!validatePassword(password)) {
-      setError("La contraseña debe tener al menos 6 caracteres")
-      setLoading(false)
-      return
+      setError('La contraseña debe tener al menos 6 caracteres');
+      setLoading(false);
+      return;
     }
 
     if (password !== confirmPassword) {
-      setError("Las contraseñas no coinciden")
-      setLoading(false)
-      return
+      setError('Las contraseñas no coinciden');
+      setLoading(false);
+      return;
     }
 
-    const { error } = await signUp(email, password, fullName)
+    const { error } = await signUp(email, password, fullName);
 
     if (error) {
-      setError(error.message)
+      setError(error.message);
     } else {
-      setSuccess(true)
+      setSuccess(true);
     }
 
-    setLoading(false)
-  }
+    setLoading(false);
+  };
 
   if (success) {
     return (
@@ -71,8 +71,8 @@ export default function RegisterForm({ onToggleMode }: RegisterFormProps) {
           </div>
           <CardTitle className="text-2xl font-bold text-center">¡Registro Exitoso!</CardTitle>
           <CardDescription className="text-center">
-            Hemos enviado un enlace de confirmación a tu correo electrónico. Por favor, revisa tu bandeja de entrada y
-            haz clic en el enlace para activar tu cuenta.
+            Hemos enviado un enlace de confirmación a tu correo electrónico. Por favor, revisa tu
+            bandeja de entrada y haz clic en el enlace para activar tu cuenta.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -81,14 +81,16 @@ export default function RegisterForm({ onToggleMode }: RegisterFormProps) {
           </Button>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold text-center">Crear Cuenta</CardTitle>
-        <CardDescription className="text-center">Completa los datos para crear tu cuenta</CardDescription>
+        <CardDescription className="text-center">
+          Completa los datos para crear tu cuenta
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -129,7 +131,7 @@ export default function RegisterForm({ onToggleMode }: RegisterFormProps) {
             <div className="relative">
               <Input
                 id="password"
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -159,7 +161,7 @@ export default function RegisterForm({ onToggleMode }: RegisterFormProps) {
             <div className="relative">
               <Input
                 id="confirmPassword"
-                type={showConfirmPassword ? "text" : "password"}
+                type={showConfirmPassword ? 'text' : 'password'}
                 placeholder="••••••••"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -190,7 +192,7 @@ export default function RegisterForm({ onToggleMode }: RegisterFormProps) {
 
           <div className="text-center">
             <div className="text-sm text-muted-foreground">
-              ¿Ya tienes cuenta?{" "}
+              ¿Ya tienes cuenta?{' '}
               <Button
                 type="button"
                 variant="link"
@@ -205,5 +207,5 @@ export default function RegisterForm({ onToggleMode }: RegisterFormProps) {
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -1,39 +1,42 @@
-"use client"
+'use client';
 
-import { useMemo } from "react"
-import { useTransactionsStore } from "@/store/transactions-store"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Skeleton } from '@/components/ui/skeleton'
-import {
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-} from "recharts"
+import { useMemo } from 'react';
+import { useTransactionsStore } from '@/store/transactions-store';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#82CA9D", "#FFC658", "#FF7C7C"]
+const COLORS = [
+  '#0088FE',
+  '#00C49F',
+  '#FFBB28',
+  '#FF8042',
+  '#8884D8',
+  '#82CA9D',
+  '#FFC658',
+  '#FF7C7C',
+];
 
 export default function ExpensesByCategoryChart() {
-  const transactions = useTransactionsStore(s => s.transactions)
+  const transactions = useTransactionsStore((s) => s.transactions);
   const expensesByCategory = useMemo(() => {
     const categoryTotals = transactions
-      .filter((t) => t.type === "expense")
+      .filter((t) => t.type === 'expense')
       .reduce(
         (acc, t) => {
-          acc[t.category] = (acc[t.category] || 0) + t.amount
-          return acc
+          acc[t.category] = (acc[t.category] || 0) + t.amount;
+          return acc;
         },
         {} as Record<string, number>,
-      )
+      );
 
     return Object.entries(categoryTotals).map(([category, amount]) => ({
       name: category,
       value: amount,
-    }))
-  }, [transactions])
+    }));
+  }, [transactions]);
 
-  const isLoading = transactions.length === 0
+  const isLoading = transactions.length === 0;
 
   return (
     <Card>
@@ -48,7 +51,7 @@ export default function ExpensesByCategoryChart() {
               <Skeleton className="h-40 w-40 rounded-full" />
             </div>
             <div className="grid grid-cols-2 gap-2">
-              {["a","b","c","d"].map(k => (
+              {['a', 'b', 'c', 'd'].map((k) => (
                 <Skeleton key={k} className="h-4" />
               ))}
             </div>
@@ -70,11 +73,11 @@ export default function ExpensesByCategoryChart() {
                   <Cell key={`cell-${entry.name}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value) => [`$${value}`, "Monto"]} />
+              <Tooltip formatter={(value) => [`$${value}`, 'Monto']} />
             </PieChart>
           </ResponsiveContainer>
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -1,12 +1,15 @@
-import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { AlertTriangle } from 'lucide-react'
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { AlertTriangle } from 'lucide-react';
 
 interface UnderConstructionProps {
-  title?: string
-  description?: string
+  title?: string;
+  description?: string;
 }
 
-export function UnderConstruction({ title = 'Vista en construcción', description = 'Estamos trabajando para traerte esta funcionalidad pronto.' }: Readonly<UnderConstructionProps>) {
+export function UnderConstruction({
+  title = 'Vista en construcción',
+  description = 'Estamos trabajando para traerte esta funcionalidad pronto.',
+}: Readonly<UnderConstructionProps>) {
   return (
     <div className="flex flex-col items-center justify-center py-20">
       <Card className="max-w-md w-full text-center">
@@ -18,7 +21,9 @@ export function UnderConstruction({ title = 'Vista en construcción', descriptio
           <CardDescription>{description}</CardDescription>
         </CardHeader>
       </Card>
-      <p className="mt-6 text-xs text-muted-foreground">Versión preliminar • Habrá más actualizaciones</p>
+      <p className="mt-6 text-xs text-muted-foreground">
+        Versión preliminar • Habrá más actualizaciones
+      </p>
     </div>
-  )
+  );
 }
