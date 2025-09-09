@@ -24,6 +24,7 @@ import { RealExpensesCard } from './components/real-expenses-card';
 import { PlannedExpensesCard } from './components/planned-expenses-card';
 import { AvailableCard } from './components/available-card';
 import { BudgetProgressCard } from './components/budget-progress-card';
+import { RemainingAvailableCard } from './components/remaining-available';
 
 // PlannedRow imported from hook
 type BudgetRow = Database['public']['Tables']['budgets']['Row'];
@@ -149,9 +150,13 @@ export function PlanningView({
         <RealExpensesCard selectedMonth={selectedMonth} transactions={transactions} />
         <PlannedExpensesCard selectedMonth={selectedMonth} planned={planned} />
         <AvailableCard
-          selectedMonth={selectedMonth}
+          transactions={transactions}
+        />
+        <RemainingAvailableCard
           transactions={transactions}
           planned={planned}
+          selectedMonth={selectedMonth}
+          budgets={budgets}
         />
       </div>
 

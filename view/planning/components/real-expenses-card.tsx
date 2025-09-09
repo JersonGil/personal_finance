@@ -15,16 +15,18 @@ export function RealExpensesCard({ selectedMonth, transactions }: Readonly<RealE
   const [yearStr, monthStr] = selectedMonth.split('-');
   const year = Number(yearStr);
   const month = Number(monthStr);
+
   const realExpenses = transactions
     .filter((t) => {
       const d = new Date(t.date);
       return t.type === 'expense' && d.getFullYear() === year && d.getMonth() === month - 1;
     })
     .reduce((sum, t) => sum + t.amount, 0);
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">Gastos Reales</CardTitle>
+        <CardTitle className="text-sm font-medium">Gastos Reales del mes {month}</CardTitle>
         <TrendingDown className="h-4 w-4 text-red-600" />
       </CardHeader>
       <CardContent>
