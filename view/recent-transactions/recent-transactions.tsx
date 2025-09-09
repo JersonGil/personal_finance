@@ -9,7 +9,7 @@ import React, { useState } from 'react';
 import { toast } from 'sonner';
 import NoTransactions from '@/components/no-transactions';
 import TransactionCard from './components/transaction-card';
-import { createTransaction } from '@/service/transactions';
+import { createTransaction, updateTransaction } from '@/service/transactions';
 
 import { useTransactionsStore } from '@/store/transactions-store';
 import { useRouter } from 'next/navigation';
@@ -21,6 +21,7 @@ const RecentTransactions: React.FC = () => {
   const replaceTemp = useTransactionsStore((s) => s.replaceTemp);
   const removeTransaction = useTransactionsStore((s) => s.removeTransaction);
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
+  const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
   const PAGE_SIZE = 5;
   const [incomePage, setIncomePage] = useState(0);
   const [expensePage, setExpensePage] = useState(0);
@@ -53,6 +54,31 @@ const RecentTransactions: React.FC = () => {
       }
   // Refetch server-rendered data (totals, charts, server lists)
   router.refresh();
+    }
+  };
+
+  const handleUpdateTransaction = async (
+    id: string,
+    changes: Pick<Transaction, 'type' | 'amount' | 'category' | 'description' | 'date'>,
+  ) => {
+    // Snapshot for rollback
+    const original = transactions.find((t) => t.id === id);
+    if (!original) return;
+    // Optimistic update
+    useTransactionsStore.getState().updateTransaction(id, {
+      ...changes,
+    });
+    const { error, data } = await updateTransaction(id, changes);
+    if (error || !data) {
+      toast.error('Error actualizando transacción.');
+      // Rollback
+      useTransactionsStore.getState().updateTransaction(id, original);
+    } else {
+      toast.success('Transacción actualizada.');
+      useTransactionsStore.getState().updateTransaction(id, data);
+      setIsTransactionModalOpen(false);
+      setSelectedTx(null);
+      router.refresh();
     }
   };
 
@@ -104,7 +130,10 @@ const RecentTransactions: React.FC = () => {
                     category={transaction.category}
                     date={transaction.date}
                     amount={transaction.amount}
-                    onEdit={() => {}}
+                    onEdit={() => {
+                      setSelectedTx(transaction);
+                      setIsTransactionModalOpen(true);
+                    }}
                     onDelete={() => {}}
                   />
                 ))
@@ -151,7 +180,10 @@ const RecentTransactions: React.FC = () => {
                     category={transaction.category}
                     date={transaction.date}
                     amount={transaction.amount}
-                    onEdit={() => {}}
+                    onEdit={() => {
+                      setSelectedTx(transaction);
+                      setIsTransactionModalOpen(true);
+                    }}
                     onDelete={() => {}}
                   />
                 ))
@@ -187,8 +219,13 @@ const RecentTransactions: React.FC = () => {
       </Card>
       <TransactionModal
         isOpen={isTransactionModalOpen}
-        onClose={() => setIsTransactionModalOpen(false)}
+        onClose={() => {
+          setIsTransactionModalOpen(false);
+          setSelectedTx(null);
+        }}
         onSave={handleSaveTransaction}
+        onUpdate={handleUpdateTransaction}
+        transaction={selectedTx}
       />
     </>
   );

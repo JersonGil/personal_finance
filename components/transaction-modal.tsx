@@ -27,6 +27,10 @@ interface TransactionModalProps {
   onSave: (
     transaction: Pick<Transaction, 'type' | 'amount' | 'category' | 'description' | 'date'>,
   ) => void;
+  onUpdate?: (
+    id: string,
+    transaction: Pick<Transaction, 'type' | 'amount' | 'category' | 'description' | 'date'>,
+  ) => void;
   transaction?: Transaction | null;
 }
 
@@ -34,6 +38,7 @@ export default function TransactionModal({
   isOpen,
   onClose,
   onSave,
+  onUpdate,
   transaction,
 }: Readonly<TransactionModalProps>) {
   const { getIncomeCategories, getExpenseCategories, loading: categoriesLoading } = useCategories();
@@ -87,13 +92,19 @@ export default function TransactionModal({
       return;
     }
 
-    onSave({
+    const payload = {
       type,
       amount: Number.parseFloat(amount),
       category,
       description,
       date,
-    });
+    } as const;
+
+    if (transaction && onUpdate) {
+      onUpdate(transaction.id, payload);
+    } else {
+      onSave(payload);
+    }
 
     setForm({
       type: 'expense',

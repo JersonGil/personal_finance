@@ -6,22 +6,27 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import BudgetModal from '@/components/budget-modal';
+import DeleteBudgetModal from '@/components/delete-budget-modal';
 import type { Database } from '@/types/supabase';
 import { useTransactions } from '@/hooks/use-get-transactions';
 import NoTransactions from '@/components/no-transactions';
 import { useBudgets } from '@/hooks/use-budgets';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type BudgetRow = Database['public']['Tables']['budgets']['Row'];
 
 export default function BudgetView({ initialBudgets }: Readonly<{ initialBudgets?: BudgetRow[] }>) {
   const { transactions } = useTransactions();
-  const { budgets } = useBudgets({ initialData: initialBudgets });
+  const { budgets, createBudget, updateBudget, deleteBudget, refetch, loading } = useBudgets({ initialData: initialBudgets });
+  const [mutating, setMutating] = useState(false);
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<BudgetRow | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [budgetToDelete, setBudgetToDelete] = useState<BudgetRow | null>(null);
 
   const budgetComparison = useMemo(() => {
     const currentMonth = new Date().toISOString().slice(0, 7);
-    return budgets.map((budget) => {
+    return budgets.filter((b) => b.month === currentMonth).map((budget) => {
       const spent = transactions
         .filter(
           (t) =>
@@ -72,8 +77,26 @@ export default function BudgetView({ initialBudgets }: Readonly<{ initialBudgets
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          {budgetComparison.length > 0 ? (
-            budgetComparison.map((budget) => (
+          {(() => {
+            if ((loading || mutating) && budgetComparison.length === 0) {
+              return (
+                <div className="space-y-4">
+                  {['a','b','c'].map((k) => (
+                    <div key={`skeleton-${k}`} className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-2 w-full">
+                          <Skeleton className="h-4 w-1/3" />
+                          <Skeleton className="h-3 w-1/2" />
+                        </div>
+                      </div>
+                      <Skeleton className="h-2 w-full" />
+                    </div>
+                  ))}
+                </div>
+              );
+            }
+            if (budgetComparison.length > 0) {
+              return budgetComparison.map((budget) => (
               <div key={budget.id} className="space-y-2">
                 <div className="flex items-center justify-between">
                   <div>
@@ -89,7 +112,14 @@ export default function BudgetView({ initialBudgets }: Readonly<{ initialBudgets
                     <Button variant="ghost" size="icon" onClick={() => handleEditBudget(budget)}>
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        setBudgetToDelete(budget);
+                        setDeleteModalOpen(true);
+                      }}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -105,10 +135,10 @@ export default function BudgetView({ initialBudgets }: Readonly<{ initialBudgets
                   <span>{budget.month}</span>
                 </div>
               </div>
-            ))
-          ) : (
-            <NoTransactions messages="No hay presupuestos registrados aún." />
-          )}
+              ));
+            }
+            return <NoTransactions messages="No hay presupuestos registrados aún." />;
+          })()}
         </div>
       </CardContent>
       <BudgetModal
@@ -118,6 +148,54 @@ export default function BudgetView({ initialBudgets }: Readonly<{ initialBudgets
           setEditingBudget(null);
         }}
         budget={editingBudget}
+        onCreate={async (input) => {
+          setMutating(true);
+          try {
+            const { error } = await createBudget({
+              category: input.category,
+              amount: input.amount,
+              month: input.month,
+            });
+            if (error) return { error };
+            await refetch();
+          } finally {
+            setMutating(false);
+          }
+        }}
+        onUpdate={async (id, input) => {
+          setMutating(true);
+          try {
+            const { error } = await updateBudget(id, {
+              category: input.category,
+              amount: input.amount,
+              month: input.month,
+            });
+            if (error) return { error };
+            await refetch();
+          } finally {
+            setMutating(false);
+          }
+        }}
+        onAfterChange={refetch}
+      />
+      <DeleteBudgetModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setBudgetToDelete(null);
+        }}
+        budgetId={budgetToDelete?.id}
+        onDelete={async (id) => {
+          setMutating(true);
+          try {
+            const { error } = await deleteBudget(id);
+            if (error) return { error };
+            await refetch();
+          } finally {
+            setMutating(false);
+          }
+        }}
+        onAfterChange={refetch}
       />
     </Card>
   );

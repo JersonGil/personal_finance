@@ -17,18 +17,31 @@ import CurrencyConverter from './currency-converter';
 import type { Budget } from '@/types/finance';
 import { currencies } from '@/lib/utils';
 import { useDollarPrice } from '@/providers/dollar-price-provider';
-import { useBudgets } from '@/hooks/use-budgets';
 import { toast } from 'sonner';
 
 interface BudgetModalProps {
   readonly isOpen: boolean;
   readonly onClose: () => void;
   readonly budget?: Budget | null;
+  readonly onCreate: (input: { category: string; amount: number; month: string }) => Promise<{
+    error: string | null;
+  } | void>;
+  readonly onUpdate: (
+    id: string,
+    input: { category: string; amount: number; month: string },
+  ) => Promise<{ error: string | null } | void>;
+  readonly onAfterChange?: () => Promise<void> | void; // optional refetch trigger
 }
 
-export default function BudgetModal({ isOpen, onClose, budget }: Readonly<BudgetModalProps>) {
+export default function BudgetModal({
+  isOpen,
+  onClose,
+  budget,
+  onCreate,
+  onUpdate,
+  onAfterChange,
+}: Readonly<BudgetModalProps>) {
   const { getExpenseCategories, loading: categoriesLoading } = useCategories();
-  const { createBudget, refetch } = useBudgets();
   const { price } = useDollarPrice();
   const [isPending, setIsPending] = useState(false);
   const [category, setCategory] = useState('');
@@ -57,26 +70,46 @@ export default function BudgetModal({ isOpen, onClose, budget }: Readonly<Budget
 
     setIsPending(true);
 
-    createBudget({
-      category,
-      amount: Number.parseFloat(amount),
-      month,
-    })
-      .then(async () => {
-        toast.success('Presupuesto creado exitosamente');
-        await refetch();
-        setCategory('');
-        setAmount('');
-        setMonth('');
-        onClose();
+    const commonSuccess = async (message: string) => {
+      toast.success(message);
+      await onAfterChange?.();
+      setCategory('');
+      setAmount('');
+      setMonth('');
+      onClose();
+    };
+
+    if (budget) {
+      onUpdate(budget.id, {
+        category,
+        amount: Number.parseFloat(amount),
+        month,
       })
-      .catch((error) => {
-        toast.error('Error al crear presupuesto');
-        console.error(error);
+        .then(async (res) => {
+          if (res && 'error' in res && res.error) throw new Error(res.error);
+          await commonSuccess('Presupuesto actualizado');
+        })
+        .catch((error) => {
+          toast.error('Error al actualizar presupuesto');
+          console.error(error);
+        })
+        .finally(() => setIsPending(false));
+    } else {
+      onCreate({
+        category,
+        amount: Number.parseFloat(amount),
+        month,
       })
-      .finally(() => {
-        setIsPending(false);
-      });
+        .then(async (res) => {
+          if (res && 'error' in res && res.error) throw new Error(res.error);
+          await commonSuccess('Presupuesto creado exitosamente');
+        })
+        .catch((error) => {
+          toast.error('Error al crear presupuesto');
+          console.error(error);
+        })
+        .finally(() => setIsPending(false));
+    }
   };
 
   // Generate month options (current month and next 11 months)

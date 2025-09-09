@@ -21,17 +21,14 @@ export function AvailableCard({
   const year = Number(yearStr);
   const month = Number(monthStr);
 
-  const totalIncome = transactions
-    .filter((t) => {
-      if (t.type !== 'income') return false;
-
-      const d = new Date(t.date);
-
-      if (isNaN(d.getTime())) return false;
-
-      return d.getUTCFullYear() === year && d.getUTCMonth() + 1 === month;
-    })
+  // Balance global actual (todos los ingresos - todos los gastos), ignorando mes seleccionado
+  const globalIncome = transactions
+    .filter((t) => t.type === 'income')
     .reduce((s, t) => s + t.amount, 0);
+  const globalExpenses = transactions
+    .filter((t) => t.type === 'expense')
+    .reduce((s, t) => s + t.amount, 0);
+  const totalIncome = globalIncome - globalExpenses; // reutilizamos el nombre para mínimo cambio abajo
 
   const plannedExpenses = planned
     .filter((p) => {
@@ -48,7 +45,6 @@ export function AvailableCard({
       return d.getUTCFullYear() === year && d.getUTCMonth() + 1 === month;
     })
     .reduce((s, t) => s + t.amount, 0);
-
   const available = totalIncome - realExpenses - plannedExpenses;
   const color = available >= 0 ? 'text-green-600' : 'text-red-600';
 

@@ -4,10 +4,10 @@ import _ from 'lodash';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const apiUrl = `${process.env.NEXT_PUBLIC_PRICE_URL}/rates`;
+    const apiUrl = `${process.env.NEXT_PUBLIC_PRICE_URL}`;
 
     const response = await axios.get(apiUrl);
-    const priceInfo = _.get(response.data, 'dollar', { price: 36.6 });
+    const priceInfo = _.get(response.data[0], 'promedio', { price: 36.6 });
 
     res.status(200).send({ price: priceInfo });
   } catch (err) {

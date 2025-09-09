@@ -133,7 +133,7 @@ export function PlanningView({
                 date.setMonth(date.getMonth() + i);
                 const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
                 return (
-                  <SelectItem key={value} value={value}>
+                  <SelectItem key={`${value}-${i}`} value={value}>
                     {date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
                   </SelectItem>
                 );
@@ -197,9 +197,9 @@ export function PlanningView({
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {currentMonthPlanned?.map((planned) => (
+            {currentMonthPlanned?.map((planned, index) => (
               <div
-                key={planned.id}
+                key={`${planned.id}-${index}`}
                 className={`flex items-center justify-between p-4 border rounded-lg ${
                   planned.type === 'income'
                     ? 'bg-green-50 dark:bg-green-900/20'
